@@ -22,7 +22,7 @@ namespace Writers_Pal.Models {
             if (!Repository.IsValid(filepath)) {
 
                 Repository.Init(filepath);
-
+                
             }
 
             return LoadLocalRepo(filepath);

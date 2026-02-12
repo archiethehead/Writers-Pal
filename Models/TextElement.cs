@@ -23,8 +23,8 @@ namespace Writers_Pal.Models {
 
         public static TextElement JsonToTextElement(JsonElement json) {
 
-            UInt16 initID = json.GetProperty("ID").GetUInt16()!;
-            string jsonType = json.GetProperty("Type").GetString()!;
+            UInt16 initID = json.GetProperty("id").GetUInt16()!;
+            string jsonType = json.GetProperty("type").GetString()!;
             TextElementType initType = Enum.Parse<TextElementType>(jsonType);
 
             TextElement newElement = new TextElement(initType, initID);

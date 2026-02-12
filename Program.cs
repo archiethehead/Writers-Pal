@@ -2,17 +2,17 @@
 using Avalonia;
 using Writers_Pal.Models;
 
-namespace Writers_Pal
-{
-    internal sealed class Program
-    {
+namespace Writers_Pal {
+
+    internal sealed class Program {
+
         // Initialization code. Don't use any Avalonia, third-party APIs or any
         // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
         // yet and stuff might break.
         [STAThread]
         public static void Main(string[] args) {
 
-            ScriptProject newProj = new ScriptProject("A", "A", "D:\\Personal\\Programs\\CSharp\\Writers-Pal\\Assets", true);
+            ScriptProject newProj = new ScriptProject("A", "A", "D:\\Personal\\Programs\\CSharp\\Writers-Pal\\Assets", false);
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
 
         }
@@ -23,5 +23,7 @@ namespace Writers_Pal
                 .UsePlatformDetect()
                 .WithInterFont()
                 .LogToTrace();
+
     }
+
 }

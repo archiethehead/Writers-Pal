@@ -9,8 +9,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using static System.Random;
 
-namespace Writers_Pal.Models
-{
+namespace Writers_Pal.Models {
 
     internal class ScriptProject {
 
@@ -36,12 +35,14 @@ namespace Writers_Pal.Models
             Directory.CreateDirectory(filepath);
             currentRepo = VersionControl.CreateNewRepo(filepath);
 
-            File.WriteAllText(Path.Combine(filepath, "project.json"), 
-                JsonSerializer.Serialize(new { elements = Array.Empty<object>()}));
+            //File.WriteAllText(Path.Combine(filepath, "project.json"), 
+            //    JsonSerializer.Serialize(new { elements = Array.Empty<object>()}));
         
         }
 
         private void OpenProject(string filepath) {
+
+            currentRepo = VersionControl.CreateNewRepo(filepath);
 
             string projectPath = Path.Combine(filepath, "project.json");
 
