@@ -9,32 +9,54 @@ using static System.Random;
 
 namespace Writers_Pal.Models
 {
+
     internal class ScriptProject {
 
-        public Repository? currentRepo;
+        public string projectName { get; set; } = "";
+        public string projectAuthor { get; set; } = "";
+        public Repository? currentRepo { get; set; }
 
-        public int RandomID() {
+    }
 
-            Random rng = new Random();
-            UInt16 newID;
+    static public class IDGenerator {
 
-            do {
+        // Max Size of an unsigned, 16 bit int is 65535, going over this will result in countback
+        // and ID corruption.
 
-                newID = (ushort)rng.Next(0, 65535);
+        public const UInt16 ID_SIZE = 10000;
 
-            } while (IsIDTaken(newID));
 
-            return newID;
-        
-        }
+        static public UInt16 AssignID()
+            {
 
-        public bool IsIDTaken(int ID)
-        {
+                UInt16 newID;
 
-            return false;
+                do
+                {
+
+                    newID = RandomID();
+
+                } while (IsIDTaken(newID));
+
+                return newID;
+
+            }
+
+            static public UInt16 RandomID()
+            {
+
+                Random rng = new Random();
+                return (ushort)rng.Next((ushort)0, ID_SIZE);
+
+            }
+
+            static public bool IsIDTaken(int ID)
+            {
+
+                return false;
+
+            }
 
         }
 
     }
-
-}
