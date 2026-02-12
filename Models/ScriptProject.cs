@@ -16,11 +16,11 @@ namespace Writers_Pal.Models
         public int RandomID() {
 
             Random rng = new Random();
-            int newID;
+            UInt16 newID;
 
             do {
 
-                newID = rng.Next(0, 65535);
+                newID = (ushort)rng.Next(0, 65535);
 
             } while (IsIDTaken(newID));
 

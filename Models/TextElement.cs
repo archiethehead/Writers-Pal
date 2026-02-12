@@ -19,11 +19,11 @@ namespace Writers_Pal.Models {
     
     }
 
-    static class JsonHandler {
+    public static class JsonHandler {
 
-        static TextElement JsonToTextElement(JsonElement json) {
+        public static TextElement JsonToTextElement(JsonElement json) {
 
-            Int32 initID = json.GetProperty("ID").GetInt32()!;
+            UInt16 initID = json.GetProperty("ID").GetUInt16()!;
             string jsonType = json.GetProperty("Type").GetString()!;
             TextElementType initType = Enum.Parse<TextElementType>(jsonType);
 
@@ -33,16 +33,27 @@ namespace Writers_Pal.Models {
             return newElement;
         
         }
-    
+
+        public static string TextElementToJson(TextElement element) {
+
+            return JsonSerializer.Serialize(new
+            {
+                id = element.ID,
+                type = element.type.ToString(),
+                text = element.text
+            });
+        
+        }
+
     }
 
     public class TextElement {
 
-        public Int32 ID { get; init; } = 1;
+        public UInt16 ID { get; init; } = 1;
         public TextElementType type { get; set; }
         public string text { get; set; } = "";
 
-        public TextElement(TextElementType initType, Int32 initID) {
+        public TextElement(TextElementType initType, UInt16 initID) {
 
             type = initType;
             ID = initID;
