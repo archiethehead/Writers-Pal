@@ -1,10 +1,10 @@
-﻿using System;
+﻿using LibGit2Sharp;
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using LibGit2Sharp;
 using Avalonia.Platform;
 
 namespace Writers_Pal.Models {
@@ -13,8 +13,7 @@ namespace Writers_Pal.Models {
 
         public static Repository LoadLocalRepo(string filepath) {
 
-            var newRepository = new Repository(filepath);
-            return newRepository;
+            return new Repository(filepath);
 
         }
 
@@ -42,7 +41,7 @@ namespace Writers_Pal.Models {
         public static void MergeRepoBranch(Repository currentRepository, Branch branch, Signature author) {
 
             Commands.Checkout(currentRepository, currentRepository.Head.FriendlyName);
-            var result = currentRepository.Merge(branch, author);
+            MergeResult result = currentRepository.Merge(branch, author);
 
             // Will implement error notifications later.
             if (result.Status == MergeStatus.Conflicts) return;
@@ -51,7 +50,7 @@ namespace Writers_Pal.Models {
 
         public static void CreateRepoBranch(Repository currentRepository, string branchName) {
 
-            var newBranch = currentRepository.CreateBranch(branchName);
+            Branch newBranch = currentRepository.CreateBranch(branchName);
             switchBranch(currentRepository, newBranch);
 
         }
@@ -82,4 +81,5 @@ namespace Writers_Pal.Models {
 
 
     }
+
 }
