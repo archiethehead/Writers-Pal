@@ -9,8 +9,7 @@ using static System.Random;
 
 namespace Writers_Pal.Models
 {
-    internal class ScriptProject
-    {
+    internal class ScriptProject {
 
         public Repository? currentRepo;
 

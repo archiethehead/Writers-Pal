@@ -4,34 +4,51 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Writers_Pal.Models
-{
+namespace Writers_Pal.Models {
+
+    public enum TextElementType { 
     
-    internal class TextElement {
-
-        public int ID;
-        public string? type;
-        public string? text;
-
-    }
-
-    internal class SceneHeading : TextElement {
-
-        public string? time;
-        public string? location;
-
-    }
-
-    internal class Dialogue : TextElement {
-
-        public string? character;
+        Description,
+        Name,
+        Dialogue,
+        Setting,
+        Stage
     
     }
 
-    internal class Description : TextElement {}
+    static class JsonHandler {
 
-    internal class Stage : TextElement {}
+        static TextElement JsonToTextElement(JsonElement json) {
+
+            Int32 initID = json.GetProperty("ID").GetInt32()!;
+            string jsonType = json.GetProperty("Type").GetString()!;
+            TextElementType initType = Enum.Parse<TextElementType>(jsonType);
+
+            TextElement newElement = new TextElement(initType, initID);
+            newElement.text = json.GetProperty("text").GetString()!;
+
+            return newElement;
+        
+        }
+    
+    }
+
+    public class TextElement {
+
+        public Int32 ID { get; init; } = 1;
+        public TextElementType type { get; set; }
+        public string text { get; set; } = "";
+
+        public TextElement(TextElementType initType, Int32 initID) {
+
+            type = initType;
+            ID = initID;
+
+        }
+
+    }
 
 }
