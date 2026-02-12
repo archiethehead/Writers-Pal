@@ -16,25 +16,43 @@ namespace Writers_Pal.Models
 
         public string projectName { get; private set; } = "";
         public string projectAuthor { get; private set; } = "";
-        public List<TextElement> TextArray { get; private set; } = new();
+        public string authorEmail { get; private set; } = "";
+        public List<TextElement> TextArray { get; private set; } = new List<TextElement>();
         public Repository? currentRepo { get; private set; }
 
-        public ScriptProject(string filepath, bool creating) {
+        public ScriptProject(string name, string email, string filepath, bool creating) {
+
+            projectAuthor = name;
+            authorEmail = email;
 
             if (creating) { CreateProject(filepath); }
-            else { OpenProject(filepath); }
+
+            OpenProject(filepath);
         
         }
 
-        private void CreateProject(string filepath) { 
-        
-        
+        private void CreateProject(string filepath) {
+            
+            Directory.CreateDirectory(filepath);
+            currentRepo = VersionControl.CreateNewRepo(filepath);
+
+            File.WriteAllText(Path.Combine(filepath, "project.json"), 
+                JsonSerializer.Serialize(new { elements = Array.Empty<object>()}));
         
         }
 
-        private void OpenProject(string filepath) { 
-        
+        private void OpenProject(string filepath) {
 
+            string projectPath = Path.Combine(filepath, "project.json");
+
+            JsonDocument projectJson = JsonDocument.Parse(File.ReadAllText(projectPath));
+            TextArray.Clear();
+
+            foreach (JsonElement index in projectJson.RootElement.GetProperty("elements").EnumerateArray()) {
+
+                TextArray.Add(JsonHandler.JsonToTextElement(index));
+            
+            }   
 
         }
 
@@ -47,7 +65,7 @@ namespace Writers_Pal.Models
 
         private const UInt16 ID_SIZE = 20000;
         private static readonly bool[] assigned = new bool[ID_SIZE];
-        private static readonly Random rng = new();
+        private static readonly Random rng = new Random();
 
 
 

@@ -1,0 +1,29 @@
+{
+  "elements": [
+    {
+      "id": 1,
+      "type": "SceneHeading",
+      "text": "INT. KITCHEN - DAY"
+    },
+    {
+      "id": 2,
+      "type": "Description",
+      "text": "John walks into the kitchen, rubbing his eyes."
+    },
+    {
+      "id": 3,
+      "type": "Dialogue",
+      "text": "I really need more coffee..."
+    },
+    {
+      "id": 4,
+      "type": "Stage",
+      "text": "(He pours a cup of coffee.)"
+    },
+    {
+      "id": 5,
+      "type": "Dialogue",
+      "text": "Ah, that’s better."
+    }
+  ]
+}
