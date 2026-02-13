@@ -27,7 +27,10 @@ namespace Writers_Pal.Models {
             string jsonType = json.GetProperty("type").GetString()!;
             TextElementType initType = Enum.Parse<TextElementType>(jsonType);
 
-            TextElement newElement = new TextElement(initType, initID);
+            TextElement newElement;
+            newElement.ID = initID;
+            newElement.type = initType;
+
             newElement.text = json.GetProperty("text").GetString()!;
 
             return newElement;
@@ -47,19 +50,12 @@ namespace Writers_Pal.Models {
 
     }
 
-    public class TextElement {
+    public struct TextElement {
 
-        public UInt16 ID { get; init; } = 1;
-        public TextElementType type { get; set; }
-        public string text { get; set; } = "";
+        public UInt16 ID;
+        public TextElementType type;
+        public string text;
 
-        public TextElement(TextElementType initType, UInt16 initID) {
-
-            type = initType;
-            ID = initID;
-
-        }
-
-    }
+    };
 
 }
