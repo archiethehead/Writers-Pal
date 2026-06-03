@@ -24,6 +24,11 @@ bool scriptWriter::openScript() {
 
 }
 
+void addLine() {
+
+
+}
+
 void scriptWriter::mainLoop() {
 
 	initscr();

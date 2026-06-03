@@ -1,5 +1,4 @@
 #include <script_writer.h>
-#include <iostream>
 
 int main() {
 		

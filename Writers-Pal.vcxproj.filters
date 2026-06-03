@@ -17,12 +17,21 @@
     <ClInclude Include="Include\line_types.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="Include\id_handler.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\script_writer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\id_handler.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\line_types.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
