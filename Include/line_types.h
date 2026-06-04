@@ -2,7 +2,6 @@
 // line_types.h //
 //////////////////
 
-
 // The float values determine
 // the relative spacing apart
 // on the page for the different
@@ -14,7 +13,7 @@
 // |
 // V
 
-#define COVER 0.1765f
+#define COVER 0.15f
 #define DESCRIPTION 0.1765f
 #define DIALOGUE 0.294118f
 #define CHARACTER 0.4353f
@@ -24,6 +23,8 @@
 #include <id_handler.h>
 
 typedef struct line {
+
+public:
 
 	uint16_t lineID;
 	uint16_t startLineNum;

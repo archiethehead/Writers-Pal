@@ -4,28 +4,118 @@
 
 #include <script_writer.h>
 
-scriptWriter::scriptWriter(bool readOnly) {
-
-	scriptWriter::readOnly = readOnly;
-	scriptWriter::lineArray;
-
-
-}
-
-scriptWriter::~scriptWriter() {
-
-
-}
-
 bool scriptWriter::openScript() {
+	
+	scriptWriter::scriptName = "THE SANDMAN";
+	scriptWriter::writerName = "ARCHIE HEALY";
+	scriptWriter::scriptType = "DRAFT ONE ";
+
+	scriptWriter::addLine(0, DESCRIPTION, "INT. THERAPISTS OFFICE -- DAY");
+	scriptWriter::addLine(1, CHARACTER, "THERAPIST");
+	scriptWriter::addLine(2, DIALOGUE, "Did you do it?");
 
 	scriptWriter::mainLoop();
 	return true;
 
 }
 
-void addLine() {
+void scriptWriter::setLines(int y) {
 
+}
+
+int scriptWriter::findSpace(float type) {
+
+	return (int)scriptWriter::maxx * type;
+
+}
+
+void scriptWriter::movex(int* x, int modifier) {
+
+	*x += modifier;
+
+}
+
+void scriptWriter::movey(int* y, int* relativey, int modifier) {
+
+	if (modifier == POSITIVE  && *y == scriptWriter::maxy) {
+
+		if (*y == scriptWriter::scriptSize) {
+		
+			scriptWriter::addLine((*y + *relativey + 1), scriptWriter::currentType);
+		
+		}
+
+		*relativey += 1;
+		return;
+	
+	}
+
+	else if (modifier == NEGATIVE && *y == 0) {
+
+		if (!*relativey) {
+		
+			return;
+		
+		}
+
+		*relativey -= 1;
+		return;
+	
+	}
+
+	*y += modifier;
+
+}
+
+void scriptWriter::coverPage() {
+
+	int maxy = scriptWriter::maxy;
+	int size = scriptWriter::scriptSize;
+		
+	for (int i = 0; i < size; i++) {
+	
+		scriptWriter::lineBuffer[i].startLineNum += maxy;
+	
+	}
+
+	int halfPoint = maxy / 2;
+	for (int i = 0; i < maxy; i++) {
+	
+		if (i == halfPoint) {
+		
+			scriptWriter::addLine(i, COVER, scriptWriter::scriptName);
+		
+		}
+
+		else if (i == halfPoint + 1) {
+		
+			scriptWriter::addLine(i, COVER, scriptWriter::scriptType);
+
+		}
+
+		else if (i == halfPoint + 2) {
+
+			scriptWriter::addLine(i, COVER, scriptWriter::writerName);
+
+		}
+
+		else {
+
+			scriptWriter::addLine(i, COVER, "");
+
+		}
+
+		scriptWriter::scriptSize++;
+	
+	}
+
+}
+
+void scriptWriter::addLine(uint16_t startLine, float type, std::string content) {
+
+	scriptLine newLine(startLine, type, content);
+	scriptWriter::lineBuffer.push_back(newLine);
+	scriptWriter::scriptSize++;
 
 }
 
@@ -37,10 +127,23 @@ void scriptWriter::mainLoop() {
 	keypad(stdscr, true);
 	resize_term(30, 120);
 
-	int x = 0, y = 0, max_x = getmaxx(stdscr), max_y = getmaxy(stdscr), key = 0;
+	int x = 0, y = 0, relativey = 0, lineStart = 0, lineEnd = 0, key = 0;
+	scriptWriter::maxx = getmaxx(stdscr), scriptWriter::maxy = getmaxy(stdscr);
+	scriptWriter::coverPage();
 	bool writing = true;
 
 	while (writing) {
+
+		clear();
+
+		for (int i = 0; i < scriptWriter::maxy; i++) {
+		
+			scriptLine currentLine = scriptWriter::lineBuffer[i + relativey];
+			int currentSpace = scriptWriter::findSpace(currentLine.lineType);
+
+			mvaddstr(currentLine.startLineNum - relativey, currentSpace, currentLine.text.c_str());
+		
+		}
 
 		mvaddstr(y, x, "");
 		refresh();
@@ -55,7 +158,7 @@ void scriptWriter::mainLoop() {
 
 		else if (key == KEY_RIGHT) {
 
-			x++;
+			scriptWriter::movex(&x, POSITIVE);
 
 		}
 
@@ -67,7 +170,7 @@ void scriptWriter::mainLoop() {
 
 		else if (key == KEY_DOWN) {
 		
-			y++;
+			scriptWriter::movey(&y, &relativey, POSITIVE);
 		
 		}
 
@@ -81,6 +184,7 @@ void scriptWriter::mainLoop() {
 
 		else {
 
+			x++;
 			char key_value[] = { key, '\0' };
 			mvprintw(y, x, key_value);
 

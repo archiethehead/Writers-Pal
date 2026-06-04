@@ -8,5 +8,4 @@
 extern bool idHashmap[];
 
 uint16_t getid();
-uint16_t randid();
 void freeid(uint16_t id);
