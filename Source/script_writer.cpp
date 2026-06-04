@@ -5,21 +5,9 @@
 #include <script_writer.h>
 
 bool scriptWriter::openScript() {
-	
-	scriptWriter::scriptName = "THE SANDMAN";
-	scriptWriter::writerName = "ARCHIE HEALY";
-	scriptWriter::scriptType = "DRAFT ONE ";
-
-	scriptWriter::addLine(0, DESCRIPTION, "INT. THERAPISTS OFFICE -- DAY");
-	scriptWriter::addLine(1, CHARACTER, "THERAPIST");
-	scriptWriter::addLine(2, DIALOGUE, "Did you do it?");
 
 	scriptWriter::mainLoop();
 	return true;
-
-}
-
-void scriptWriter::setLines(int y) {
 
 }
 
@@ -29,41 +17,66 @@ int scriptWriter::findSpace(float type) {
 
 }
 
-void scriptWriter::movex(int* x, int modifier) {
-
-	*x += modifier;
+void scriptWriter::setLines(int y) {
 
 }
 
-void scriptWriter::movey(int* y, int* relativey, int modifier) {
+void scriptWriter::centreText(std::string &text) {
 
-	if (modifier == POSITIVE  && *y == scriptWriter::maxy) {
+	std::string buffer = text;
+	text = std::string((scriptWriter::maxx - buffer.length()) / 2, ' ') + buffer;
 
-		if (*y == scriptWriter::scriptSize) {
+}
+
+void scriptWriter::sortBuffer() {
+
+	std::sort(scriptWriter::lineBuffer.begin(), scriptWriter::lineBuffer.end());
+	scriptWriter::bufferModified = false;
+
+}
+
+bool scriptWriter::movex(int &x, int modifier) {
+
+	x += modifier;
+	return true;
+
+}
+
+void scriptWriter::movey(int &y, int &relativey, int modifier) {
+
+	if (modifier == POSITIVE  && y == scriptWriter::maxy - 1) {
+
+		if (y == scriptWriter::scriptSize) {
 		
-			scriptWriter::addLine((*y + *relativey + 1), scriptWriter::currentType);
+			scriptWriter::addLine((y + relativey + 1), scriptWriter::currentType);
 		
 		}
 
-		*relativey += 1;
-		return;
-	
-	}
-
-	else if (modifier == NEGATIVE && *y == 0) {
-
-		if (!*relativey) {
+		if (y + relativey == scriptWriter::lineBuffer.size() - 1) {
 		
 			return;
 		
 		}
 
-		*relativey -= 1;
+		relativey += 1;
 		return;
 	
 	}
 
-	*y += modifier;
+	else if (modifier == NEGATIVE && y == 0) {
+
+		if (!relativey) {
+		
+			return;
+		
+		}
+
+		relativey -= 1;
+		return;
+	
+	}
+
+	y += modifier;
 
 }
 
@@ -93,15 +106,19 @@ void scriptWriter::coverPage() {
 
 		}
 
-		else if (i == halfPoint + 2) {
+		else if (i == halfPoint + 3) {
 
-			scriptWriter::addLine(i, COVER, scriptWriter::writerName);
+			std::string writtenBy = "Written by ";
+			writtenBy += scriptWriter::writerName;
+			scriptWriter::centreText(writtenBy);
+
+			scriptWriter::addLine(i, COVER, writtenBy);
 
 		}
 
 		else {
 
-			scriptWriter::addLine(i, COVER, "");
+			scriptWriter::addLine(i, COVER);
 
 		}
 
@@ -116,6 +133,7 @@ void scriptWriter::addLine(uint16_t startLine, float type, std::string content) 
 	scriptLine newLine(startLine, type, content);
 	scriptWriter::lineBuffer.push_back(newLine);
 	scriptWriter::scriptSize++;
+	scriptWriter::bufferModified = true;
 
 }
 
@@ -129,12 +147,28 @@ void scriptWriter::mainLoop() {
 
 	int x = 0, y = 0, relativey = 0, lineStart = 0, lineEnd = 0, key = 0;
 	scriptWriter::maxx = getmaxx(stdscr), scriptWriter::maxy = getmaxy(stdscr);
+
+	scriptWriter::bufferModified = true;
+
+	scriptWriter::scriptName = "The Sandman";
+	scriptWriter::writerName = "Archie Healy";
+	scriptWriter::scriptType = "Draft One";
+
+	scriptWriter::centreText((scriptWriter::scriptName));
+	scriptWriter::centreText((scriptWriter::scriptType));
+
+	scriptWriter::addLine(0, DESCRIPTION, "INT. THERAPISTS OFFICE -- DAY");
+	scriptWriter::addLine(1, CHARACTER, "THERAPIST");
+	scriptWriter::addLine(2, DIALOGUE, "Did you do it?");
+
 	scriptWriter::coverPage();
 	bool writing = true;
 
 	while (writing) {
 
 		clear();
+
+		if (bufferModified) { scriptWriter::sortBuffer(); }
 
 		for (int i = 0; i < scriptWriter::maxy; i++) {
 		
@@ -158,7 +192,7 @@ void scriptWriter::mainLoop() {
 
 		else if (key == KEY_RIGHT) {
 
-			scriptWriter::movex(&x, POSITIVE);
+			scriptWriter::movex(x, POSITIVE);
 
 		}
 
@@ -170,14 +204,20 @@ void scriptWriter::mainLoop() {
 
 		else if (key == KEY_DOWN) {
 		
-			scriptWriter::movey(&y, &relativey, POSITIVE);
+			scriptWriter::movey(y, relativey, POSITIVE);
 		
 		}
 
 		else if (key == KEY_UP) {
 		
-			y--;
+			scriptWriter::movey(y, relativey, NEGATIVE);
 		
+		}
+
+		else if (key == KEY_RESIZE) {
+		
+			scriptWriter::maxx = getmaxx(stdscr), scriptWriter::maxy = getmaxy(stdscr);
+
 		}
 
 		else if (scriptWriter::readOnly) { continue; }

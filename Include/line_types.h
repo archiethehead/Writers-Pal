@@ -13,14 +13,14 @@
 // |
 // V
 
-#define COVER 0.15f
+#define COVER 0.0f
 #define DESCRIPTION 0.1765f
 #define DIALOGUE 0.294118f
 #define CHARACTER 0.4353f
 
+#include <id_handler.h>
 #include <stdint.h>
 #include <string>
-#include <id_handler.h>
 
 typedef struct line {
 
@@ -36,7 +36,14 @@ public:
 
 	void cycle_type(bool right);
 
+	bool operator < (const line& thisLine) {
+	
+		return (startLineNum < thisLine.startLineNum);
+	
+	}
+
 private:
+
 	uint8_t cycle_val = 1;
 
 } scriptLine;
