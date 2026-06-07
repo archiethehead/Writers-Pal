@@ -110,6 +110,7 @@
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(SolutionDir)External\curses;$(SolutionDir)Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AssemblerOutput>AssemblyCode</AssemblerOutput>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -136,12 +137,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Include\id_handler.h" />
-    <ClInclude Include="Include\line_types.h" />
-    <ClInclude Include="Include\script_writer.h" />
+    <ClInclude Include="Include\line_types.hpp" />
+    <ClInclude Include="Include\script_writer.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\id_handler.cpp" />
     <ClCompile Include="Source\line_types.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\script_writer.cpp" />

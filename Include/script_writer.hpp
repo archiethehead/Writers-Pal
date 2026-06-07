@@ -2,12 +2,17 @@
 // script_writer.h //
 /////////////////////
 
+#ifndef SCRIPT_WRITER_H
+#define SCRIPT_WRITER_H
+
 #define POSITIVE 1
 #define NEGATIVE -1
 
-#include <line_types.h>
+#define SCRIPT_SIZE scriptWriter::lineBuffer.size()
+#define FIND_SPACE(x) ((int)ceilf(maxx * x.lineType))
+
+#include <line_types.hpp>
 #include <curses.h>
-#include <stdlib.h>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -15,20 +20,13 @@
 
 class scriptWriter {
 
-public:
-
-	bool openScript();
-
-private:
-
 	// Class Variables
 
 	bool readOnly;
 	bool bufferModified;
 
 	std::vector<scriptLine> lineBuffer;
-	std::unordered_map<uint16_t, scriptLine*> lineMap;
-	uint16_t scriptSize;
+	std::unordered_map<int, scriptLine*> lineMap;
 		
 	std::string writerName;
 	std::string scriptName;
@@ -41,17 +39,26 @@ private:
 
 	//Class Methods
 
-	int findSpace(float type);
-	void setLines(int y);
+	int calculateLineCount(scriptLine& line);
+	int findLineNum(int index);
 
 	void centreText(std::string& text);
 	void sortBuffer();
+	void mapLines();
 
-	bool movex(int &x, int modifier);
-	void movey(int &y, int &relativey, int modifier);
+	bool movex(int& x, int modifier);
+	void movey(int& y, int &relativey, int modifier);
 
 	void coverPage();
-	void addLine(uint16_t startLine, float type, std::string content = "");
+	void addLine(int startLine, float type, std::string content = "");
 	void mainLoop();
 
+public:
+
+	scriptWriter();
+	~scriptWriter();
+	bool openScript();
+
 };
+
+#endif

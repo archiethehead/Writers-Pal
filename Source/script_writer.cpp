@@ -2,59 +2,155 @@
 // script_writer.cpp //
 ///////////////////////
 
-#include <script_writer.h>
+#include <script_writer.hpp>
+#include <iostream>
+
+scriptWriter::scriptWriter() {
+
+	initscr();
+	raw();
+	keypad(stdscr, true);
+	resize_term(30, 120);
+
+	maxx = getmaxx(stdscr);
+	maxy = getmaxy(stdscr);
+
+	bufferModified = true;
+
+	scriptName = "The Sandman";
+	writerName = "Archie Healy";
+	scriptType = "Draft One";
+
+	centreText(scriptName);
+	centreText(scriptType);
+
+	addLine(0, DESCRIPTION, "INT. THERAPISTS OFFICE -- DAY");
+	addLine(1, CHARACTER, "THERAPIST");
+	addLine(2, DIALOGUE, "Did you do it?");
+	addLine(3, DIALOGUE, " ");
+
+	coverPage();
+	sortBuffer();
+	mapLines();
+
+}
+
+scriptWriter::~scriptWriter() {
+
+	endwin();
+
+}
 
 bool scriptWriter::openScript() {
 
-	scriptWriter::mainLoop();
+	mainLoop();
 	return true;
 
 }
 
-int scriptWriter::findSpace(float type) {
+int scriptWriter::calculateLineCount(scriptLine& line) {
 
-	return (int)scriptWriter::maxx * type;
+	// Base case for empty cover page lines, which falsely
+	// return 0 for the number of lines it occupies (logical
+	// error).
+	//
+	// |
+	// |
+	// V
+
+	if (!(line.text.size()) && !(line.lineType)) {
+	
+		return 1;
+	
+	}
+
+	int padding = FIND_SPACE(line);
+	int currentSpace = line.text.length() + padding;
+	float maxSpace = maxx - padding;
+
+	float lineCount = currentSpace / maxSpace;
+	int finalCount = (int)ceilf(lineCount);
+
+	return finalCount;
 
 }
 
-void scriptWriter::setLines(int y) {
+int scriptWriter::findLineNum(int index) {
+
+	//if (index == 0) {
+	//
+	//	return 0;
+	//
+	//}
+
+	//scriptLine* line = (lineMap[index]);
+	//scriptLine* temp = line;
+	//int counter = 0;
+
+	//while (temp == line) {
+	//	
+	//	counter++;
+	//	temp = lineMap[index - counter];
+	//
+	//}
+
+	//return counter;
+
+	return 1;
 
 }
 
-void scriptWriter::centreText(std::string &text) {
+void scriptWriter::centreText(std::string& text) {
 
 	std::string buffer = text;
-	text = std::string((scriptWriter::maxx - buffer.length()) / 2, ' ') + buffer;
+	text = std::string((maxx - buffer.length()) / 2, ' ') + buffer;
 
 }
 
 void scriptWriter::sortBuffer() {
 
-	std::sort(scriptWriter::lineBuffer.begin(), scriptWriter::lineBuffer.end());
-	scriptWriter::bufferModified = false;
+	std::sort(lineBuffer.begin(), lineBuffer.end());
+	bufferModified = false;
 
 }
 
-bool scriptWriter::movex(int &x, int modifier) {
+void scriptWriter::mapLines() {
+
+	int bufferSize = SCRIPT_SIZE;
+	int lineCount = 0;
+
+	for (int i = 0; i < bufferSize; i++) {
+		
+		scriptLine& currentLine = lineBuffer[i];
+		int lineCount = calculateLineCount(currentLine);
+
+		for (int j = 0; j < lineCount; j++) {
+			
+			std::cout << currentLine.text << std::endl;
+
+
+			lineMap.insert_or_assign(i + j, &(currentLine));
+		
+		} 
+
+	}
+
+}
+
+bool scriptWriter::movex(int& x, int modifier) {
 
 	x += modifier;
 	return true;
 
 }
 
-void scriptWriter::movey(int &y, int &relativey, int modifier) {
+void scriptWriter::movey(int& y, int& relativey, int modifier) {
 
-	if (modifier == POSITIVE  && y == scriptWriter::maxy - 1) {
+	if (modifier == POSITIVE  && y == maxy - 1) {
 
-		if (y == scriptWriter::scriptSize) {
+		if (y + relativey == SCRIPT_SIZE - 1) {
 		
-			scriptWriter::addLine((y + relativey + 1), scriptWriter::currentType);
-		
-		}
-
-		if (y + relativey == scriptWriter::lineBuffer.size() - 1) {
-		
-			return;
+			addLine((y + relativey + 1), currentType);
 		
 		}
 
@@ -82,12 +178,11 @@ void scriptWriter::movey(int &y, int &relativey, int modifier) {
 
 void scriptWriter::coverPage() {
 
-	int maxy = scriptWriter::maxy;
-	int size = scriptWriter::scriptSize;
+	int size = SCRIPT_SIZE;
 		
 	for (int i = 0; i < size; i++) {
 	
-		scriptWriter::lineBuffer[i].startLineNum += maxy;
+		lineBuffer[i].startLineNum += maxy;
 	
 	}
 
@@ -96,86 +191,71 @@ void scriptWriter::coverPage() {
 	
 		if (i == halfPoint) {
 		
-			scriptWriter::addLine(i, COVER, scriptWriter::scriptName);
+			addLine(i, COVER, scriptName);
 		
 		}
 
 		else if (i == halfPoint + 1) {
 		
-			scriptWriter::addLine(i, COVER, scriptWriter::scriptType);
+			addLine(i, COVER, scriptType);
 
 		}
 
 		else if (i == halfPoint + 3) {
 
 			std::string writtenBy = "Written by ";
-			writtenBy += scriptWriter::writerName;
-			scriptWriter::centreText(writtenBy);
+			writtenBy += writerName;
+			centreText(writtenBy);
 
-			scriptWriter::addLine(i, COVER, writtenBy);
+			addLine(i, COVER, writtenBy);
 
 		}
 
 		else {
 
-			scriptWriter::addLine(i, COVER);
+			addLine(i, COVER);
 
 		}
-
-		scriptWriter::scriptSize++;
 	
 	}
 
 }
 
-void scriptWriter::addLine(uint16_t startLine, float type, std::string content) {
+void scriptWriter::addLine(int startLine, float type, std::string content) {
 
 	scriptLine newLine(startLine, type, content);
-	scriptWriter::lineBuffer.push_back(newLine);
-	scriptWriter::scriptSize++;
-	scriptWriter::bufferModified = true;
+	lineBuffer.push_back(newLine);
+	bufferModified = true;
 
 }
 
 void scriptWriter::mainLoop() {
 
-	initscr();
-	
-	raw();
-	keypad(stdscr, true);
-	resize_term(30, 120);
+	int x = 0, y = 0, relativey = 0, lineStart = 0, lineEnd = 0;
 
-	int x = 0, y = 0, relativey = 0, lineStart = 0, lineEnd = 0, key = 0;
-	scriptWriter::maxx = getmaxx(stdscr), scriptWriter::maxy = getmaxy(stdscr);
+	int key = 0;
 
-	scriptWriter::bufferModified = true;
-
-	scriptWriter::scriptName = "The Sandman";
-	scriptWriter::writerName = "Archie Healy";
-	scriptWriter::scriptType = "Draft One";
-
-	scriptWriter::centreText((scriptWriter::scriptName));
-	scriptWriter::centreText((scriptWriter::scriptType));
-
-	scriptWriter::addLine(0, DESCRIPTION, "INT. THERAPISTS OFFICE -- DAY");
-	scriptWriter::addLine(1, CHARACTER, "THERAPIST");
-	scriptWriter::addLine(2, DIALOGUE, "Did you do it?");
-
-	scriptWriter::coverPage();
 	bool writing = true;
 
 	while (writing) {
 
 		clear();
 
-		if (bufferModified) { scriptWriter::sortBuffer(); }
-
-		for (int i = 0; i < scriptWriter::maxy; i++) {
+		if (bufferModified) { 
+			
+			mapLines();
 		
-			scriptLine currentLine = scriptWriter::lineBuffer[i + relativey];
-			int currentSpace = scriptWriter::findSpace(currentLine.lineType);
+		}
+		
+		for (int i = 0; i < maxy; i++) {
 
-			mvaddstr(currentLine.startLineNum - relativey, currentSpace, currentLine.text.c_str());
+			scriptLine* line = lineMap[i + relativey];
+			scriptLine currentLine = *line;
+
+			std::string text = currentLine.text;
+			int currentSpace = FIND_SPACE(currentLine);
+
+			mvaddstr(i - relativey, 0 + currentSpace, text.c_str());
 		
 		}
 
@@ -192,35 +272,35 @@ void scriptWriter::mainLoop() {
 
 		else if (key == KEY_RIGHT) {
 
-			scriptWriter::movex(x, POSITIVE);
+			movex(x, POSITIVE);
 
 		}
 
 		else if (key == KEY_LEFT) {
 		
-			x--;
+			movex(x, NEGATIVE);
 		
 		}
 
 		else if (key == KEY_DOWN) {
-		
-			scriptWriter::movey(y, relativey, POSITIVE);
+
+			movey(y, relativey, POSITIVE);
 		
 		}
 
 		else if (key == KEY_UP) {
 		
-			scriptWriter::movey(y, relativey, NEGATIVE);
+			movey(y, relativey, NEGATIVE);
 		
 		}
 
 		else if (key == KEY_RESIZE) {
 		
-			scriptWriter::maxx = getmaxx(stdscr), scriptWriter::maxy = getmaxy(stdscr);
+			maxx = getmaxx(stdscr), maxy = getmaxy(stdscr);
 
 		}
 
-		else if (scriptWriter::readOnly) { continue; }
+		else if (readOnly) { continue; }
 
 		else {
 
@@ -232,7 +312,5 @@ void scriptWriter::mainLoop() {
 	
 
 	}
-
-	endwin();
 
 }

@@ -1,21 +1,30 @@
-#include <line_types.h>
+////////////////////
+// line_types.cpp //
+////////////////////
 
-scriptLine::line(uint16_t start, float type, std::string content) {
+#include <line_types.hpp>
 
-	lineID = getid();
+scriptLine::line(int start, float type, std::string content) {
+
 	startLineNum = start;
 	lineType = type;
 	text = content;
 
 }
 
-scriptLine::~line() {
+bool scriptLine::operator < (const line& thisLine) {
 
-	freeid(lineID);
+	return (startLineNum < thisLine.startLineNum);
 
 }
 
-void scriptLine::cycle_type(bool right) {
+scriptLine::~line() {
+
+	
+
+}
+
+void scriptLine::cycleType(bool right) {
 
 	switch (right) {
 	

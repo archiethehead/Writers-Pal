@@ -11,13 +11,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\script_writer.h">
+    <ClInclude Include="Include\script_writer.hpp">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="Include\line_types.h">
-      <Filter>Include</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\id_handler.h">
+    <ClInclude Include="Include\line_types.hpp">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>
@@ -26,9 +23,6 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\script_writer.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\id_handler.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\line_types.cpp">
