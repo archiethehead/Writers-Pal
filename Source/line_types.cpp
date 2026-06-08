@@ -2,7 +2,7 @@
 // line_types.cpp //
 ////////////////////
 
-#include <line_types.hpp>
+#include "line_types.hpp"
 
 scriptLine::line(int start, float type, std::string content) {
 

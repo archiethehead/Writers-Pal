@@ -1,9 +1,8 @@
-/////////////////////
-// script_writer.h //
-/////////////////////
+///////////////////////
+// script_writer.hpp //
+///////////////////////
 
-#ifndef SCRIPT_WRITER_H
-#define SCRIPT_WRITER_H
+#pragma once
 
 #define POSITIVE 1
 #define NEGATIVE -1
@@ -11,7 +10,22 @@
 #define SCRIPT_SIZE scriptWriter::lineBuffer.size()
 #define FIND_SPACE(x) ((int)ceilf(maxx * x.lineType))
 
-#include <line_types.hpp>
+#ifdef _DEBUG
+
+#include "debug_output.h"
+#define DBOUTS(x) dbouts(x)
+#define DBOUTI(x) dbouti(x)
+#define DBOUTF(x) dboutf(x)
+
+#else
+
+#define DBOUTS(x)
+#define DBOUTI(x)
+#define DBOUTF(x)
+
+#endif
+
+#include "line_types.hpp"
 #include <curses.h>
 #include <string>
 #include <vector>
@@ -60,5 +74,3 @@ public:
 	bool openScript();
 
 };
-
-#endif

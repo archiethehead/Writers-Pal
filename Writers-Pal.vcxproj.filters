@@ -17,6 +17,9 @@
     <ClInclude Include="Include\line_types.hpp">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="Include\debug_output.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\main.cpp">
@@ -26,6 +29,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\line_types.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\debug_output.c">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

@@ -2,8 +2,7 @@
 // script_writer.cpp //
 ///////////////////////
 
-#include <script_writer.hpp>
-#include <iostream>
+#include "script_writer.hpp"
 
 scriptWriter::scriptWriter() {
 
@@ -125,9 +124,6 @@ void scriptWriter::mapLines() {
 		int lineCount = calculateLineCount(currentLine);
 
 		for (int j = 0; j < lineCount; j++) {
-			
-			std::cout << currentLine.text << std::endl;
-
 
 			lineMap.insert_or_assign(i + j, &(currentLine));
 		
@@ -238,7 +234,7 @@ void scriptWriter::mainLoop() {
 	bool writing = true;
 
 	while (writing) {
-
+ 
 		clear();
 
 		if (bufferModified) { 
@@ -255,7 +251,7 @@ void scriptWriter::mainLoop() {
 			std::string text = currentLine.text;
 			int currentSpace = FIND_SPACE(currentLine);
 
-			mvaddstr(i - relativey, 0 + currentSpace, text.c_str());
+			mvaddstr(i, 0 + currentSpace, text.c_str());
 		
 		}
 

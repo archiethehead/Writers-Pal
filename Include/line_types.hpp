@@ -1,9 +1,8 @@
-//////////////////
-// line_types.h //
-//////////////////
+////////////////////
+// line_types.hpp //
+////////////////////
 
-#ifndef LINE_TYPES_H
-#define LINE_TYPES_H
+#pragma once
 
 // The float values determine
 // the relative spacing apart
@@ -41,5 +40,3 @@ private:
 	int cycle_val = 1;
 
 } scriptLine;
-
-#endif

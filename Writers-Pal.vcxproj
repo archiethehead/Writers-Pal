@@ -137,10 +137,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Include\debug_output.h" />
     <ClInclude Include="Include\line_types.hpp" />
     <ClInclude Include="Include\script_writer.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\debug_output.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
     <ClCompile Include="Source\line_types.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\script_writer.cpp" />

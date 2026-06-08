@@ -2,8 +2,7 @@
 // main.cpp //
 //////////////
 
-#include <script_writer.hpp>
-#include <iostream>
+#include "script_writer.hpp"
 
 int main() {
 
