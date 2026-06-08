@@ -70,4 +70,6 @@ Testing/
 #Visual Studio
 *.vcxproj.user
 .vs/
-*Intermediary/
+Intermediary/
+*.tlog
+*.idb
