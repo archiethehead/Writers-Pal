@@ -26,11 +26,12 @@
 #endif
 
 #include "line_types.hpp"
-#include <curses.h>
+#include <PDCursesMod/curses.h>
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
+#include <windows.h>
 
 class scriptWriter {
 

@@ -1,12 +1,11 @@
 /* PDCurses */
 
 #include "pdcwin.h"
-
 #include <stdlib.h>
-
-/* COLOR_PAIR to attribute encoding table. */
-
-static struct {short f, b;} atrtab[PDC_COLOR_PAIRS];
+#if !defined( __WATCOMC__) && !defined( __DMC__)
+   #include <wincon.h>
+   #define USE_GET_CONSOLE_WINDOW
+#endif
 
 /* Color component table */
 
@@ -36,7 +35,7 @@ static short ansitocurs[16] =
 
 short pdc_curstoreal[16], pdc_curstoansi[16];
 short pdc_oldf, pdc_oldb, pdc_oldu;
-bool pdc_conemu, pdc_ansi;
+bool pdc_conemu, pdc_wt, pdc_ansi;
 
 enum { PDC_RESTORE_NONE, PDC_RESTORE_BUFFER };
 
@@ -93,10 +92,8 @@ typedef struct _CONSOLE_SCREEN_BUFFER_INFOEX {
 typedef CONSOLE_SCREEN_BUFFER_INFOEX    *PCONSOLE_SCREEN_BUFFER_INFOEX;
 #endif
 
-typedef BOOL (WINAPI *SetConsoleScreenBufferInfoExFn)(HANDLE hConsoleOutput,
-    PCONSOLE_SCREEN_BUFFER_INFOEX lpConsoleScreenBufferInfoEx);
-typedef BOOL (WINAPI *GetConsoleScreenBufferInfoExFn)(HANDLE hConsoleOutput,
-    PCONSOLE_SCREEN_BUFFER_INFOEX lpConsoleScreenBufferInfoEx);
+typedef BOOL (WINAPI *SetConsoleScreenBufferInfoExFn) (HANDLE, CONSOLE_SCREEN_BUFFER_INFOEX *);
+typedef BOOL (WINAPI *GetConsoleScreenBufferInfoExFn) (HANDLE, CONSOLE_SCREEN_BUFFER_INFOEX *);
 
 static SetConsoleScreenBufferInfoExFn pSetConsoleScreenBufferInfoEx = NULL;
 static GetConsoleScreenBufferInfoExFn pGetConsoleScreenBufferInfoEx = NULL;
@@ -108,7 +105,15 @@ static LPTOP_LEVEL_EXCEPTION_FILTER xcpt_filter;
 
 static DWORD old_console_mode = 0;
 
-static bool is_nt;
+/* MSVC++ 7.1 was the last version to support Win95/98/ME.  If we're
+on any MSVC after that (_MSC_VER > 1310),  is_nt is going to be true
+no matter what.  */
+
+#if defined(_MSC_VER) && _MSC_VER > 1310
+   const bool is_nt = TRUE;
+#else
+   static bool is_nt;
+#endif
 
 static void _reset_old_colors(void)
 {
@@ -320,6 +325,7 @@ static LONG WINAPI _restore_console(LPEXCEPTION_POINTERS ep)
 {
     PDC_scr_close();
 
+    INTENTIONALLY_UNUSED_PARAMETER( ep);
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
@@ -363,9 +369,6 @@ void PDC_scr_close(void)
 
 void PDC_scr_free(void)
 {
-    if (SP)
-        free(SP);
-
     if (pdc_con_out != std_con_out)
     {
         CloseHandle(pdc_con_out);
@@ -376,10 +379,15 @@ void PDC_scr_free(void)
     SetConsoleCtrlHandler(_ctrl_break, FALSE);
 }
 
-/* open the physical screen -- allocate SP, miscellaneous intialization,
-   and may save the existing screen for later restoration */
+/* In casting function pointers,  we first cast them through a void function pointer.
+This suppresses cast-function-type warnings on gcc and MinGW.   */
 
-int PDC_scr_open(int argc, char **argv)
+#define VOID_FN_PTR (void(*)(void))
+
+/* open the physical screen -- miscellaneous initialization, may save
+   the existing screen for later restoration */
+
+int PDC_scr_open(void)
 {
     const char *str;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -389,33 +397,42 @@ int PDC_scr_open(int argc, char **argv)
 
     PDC_LOG(("PDC_scr_open() - called\n"));
 
-    SP = calloc(1, sizeof(SCREEN));
-
-    if (!SP)
-        return ERR;
-
     for (i = 0; i < 16; i++)
     {
-        pdc_curstoreal[realtocurs[i]] = i;
-        pdc_curstoansi[ansitocurs[i]] = i;
+        pdc_curstoreal[realtocurs[i]] = (short)i;
+        pdc_curstoansi[ansitocurs[i]] = (short)i;
     }
     _reset_old_colors();
 
     std_con_out =
-    pdc_con_out = GetStdHandle(STD_OUTPUT_HANDLE);
-    pdc_con_in = GetStdHandle(STD_INPUT_HANDLE);
+    pdc_con_out = CreateFile(TEXT("CONOUT$"), GENERIC_READ | GENERIC_WRITE,
+                             FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+    pdc_con_in = CreateFile(TEXT("CONIN$"), GENERIC_READ | GENERIC_WRITE,
+                            FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 
-    if (GetFileType(pdc_con_in) != FILE_TYPE_CHAR)
+    if (pdc_con_out == INVALID_HANDLE_VALUE ||
+        pdc_con_in == INVALID_HANDLE_VALUE)
     {
-        fprintf(stderr, "\nRedirection is not supported.\n");
+        fprintf(stderr, "\nCannot open console.\n");
         exit(1);
     }
 
+#if !defined(_MSC_VER) || _MSC_VER <= 1310
     is_nt = !(GetVersion() & 0x80000000);
+#endif
 
-    str = getenv("ConEmuANSI");
+#ifdef USE_GET_CONSOLE_WINDOW
+    pdc_wt = !((BOOL) SendMessage(GetConsoleWindow(), WM_GETICON, 0, 0));
+#else
+    pdc_wt = !!getenv("WT_SESSION");
+#endif
+    str = pdc_wt ? NULL : getenv("ConEmuANSI");
     pdc_conemu = !!str;
-    pdc_ansi = pdc_conemu ? !strcmp(str, "ON") : FALSE;
+    pdc_ansi =
+#ifdef PDC_WIDE
+        pdc_wt ? TRUE :
+#endif
+        pdc_conemu ? !strcmp(str, "ON") : FALSE;
 
     GetConsoleScreenBufferInfo(pdc_con_out, &csbi);
     GetConsoleScreenBufferInfo(pdc_con_out, &orig_scr);
@@ -427,31 +444,12 @@ int PDC_scr_open(int argc, char **argv)
 
     pdc_quick_edit = old_console_mode & 0x0040;
 
-    SP->lines = (str = getenv("LINES")) ? atoi(str) : PDC_get_rows();
-    SP->cols = (str = getenv("COLS")) ? atoi(str) : PDC_get_columns();
-
     SP->mouse_wait = PDC_CLICK_PERIOD;
     SP->audible = TRUE;
 
     SP->termattrs = A_COLOR | A_REVERSE;
     if (pdc_ansi)
         SP->termattrs |= A_UNDERLINE | A_ITALIC;
-
-    if (SP->lines < 2 || SP->lines > csbi.dwMaximumWindowSize.Y)
-    {
-        fprintf(stderr, "LINES value must be >= 2 and <= %d: got %d\n",
-                csbi.dwMaximumWindowSize.Y, SP->lines);
-
-        return ERR;
-    }
-
-    if (SP->cols < 2 || SP->cols > csbi.dwMaximumWindowSize.X)
-    {
-        fprintf(stderr, "COLS value must be >= 2 and <= %d: got %d\n",
-                csbi.dwMaximumWindowSize.X, SP->cols);
-
-        return ERR;
-    }
 
     SP->orig_fore = csbi.wAttributes & 0x0f;
     SP->orig_back = (csbi.wAttributes & 0xf0) >> 4;
@@ -490,15 +488,16 @@ int PDC_scr_open(int argc, char **argv)
         SP->termattrs |= A_UNDERLINE | A_LEFT | A_RIGHT;
 
     PDC_reset_prog_mode();
+    PDC_set_function_key( FUNCTION_KEY_COPY, 0);
 
     SP->mono = FALSE;
 
     h_kernel = GetModuleHandleA("kernel32.dll");
     pGetConsoleScreenBufferInfoEx =
-        (GetConsoleScreenBufferInfoExFn)GetProcAddress(h_kernel,
+        (GetConsoleScreenBufferInfoExFn) VOID_FN_PTR GetProcAddress(h_kernel,
         "GetConsoleScreenBufferInfoEx");
     pSetConsoleScreenBufferInfoEx =
-        (SetConsoleScreenBufferInfoExFn)GetProcAddress(h_kernel,
+        (SetConsoleScreenBufferInfoExFn) VOID_FN_PTR GetProcAddress(h_kernel,
         "SetConsoleScreenBufferInfoEx");
 
     return OK;
@@ -546,8 +545,12 @@ int PDC_resize_screen(int nlines, int ncols)
 {
     SMALL_RECT rect;
     COORD size, max;
+    const bool prog_resize = nlines || ncols;
 
-    bool prog_resize = nlines || ncols;
+    if( !stdscr)     /* We're trying to specify an initial screen size */
+    {                /* before calling initscr().  This works on some  */
+        return OK;   /* some platforms,  but not on this one (yet).    */
+    }
 
     if (!prog_resize)
     {
@@ -561,12 +564,12 @@ int PDC_resize_screen(int nlines, int ncols)
     max = GetLargestConsoleWindowSize(pdc_con_out);
 
     rect.Left = rect.Top = 0;
-    rect.Right = ncols - 1;
+    rect.Right = (SHORT)ncols - 1;
 
     if (rect.Right > max.X)
         rect.Right = max.X;
 
-    rect.Bottom = nlines - 1;
+    rect.Bottom = (SHORT)nlines - 1;
 
     if (rect.Bottom > max.Y)
         rect.Bottom = max.Y;
@@ -585,9 +588,6 @@ int PDC_resize_screen(int nlines, int ncols)
     SetConsoleActiveScreenBuffer(pdc_con_out);
 
     PDC_flushinp();
-
-    SP->resized = FALSE;
-    SP->cursrow = SP->curscol = 0;
 
     return OK;
 }
@@ -639,24 +639,12 @@ void PDC_reset_shell_mode(void)
 
 void PDC_restore_screen_mode(int i)
 {
+    INTENTIONALLY_UNUSED_PARAMETER( i);
 }
 
 void PDC_save_screen_mode(int i)
 {
-}
-
-void PDC_init_pair(short pair, short fg, short bg)
-{
-    atrtab[pair].f = fg;
-    atrtab[pair].b = bg;
-}
-
-int PDC_pair_content(short pair, short *fg, short *bg)
-{
-    *fg = atrtab[pair].f;
-    *bg = atrtab[pair].b;
-
-    return OK;
+    INTENTIONALLY_UNUSED_PARAMETER( i);
 }
 
 bool PDC_can_change_color(void)
@@ -664,9 +652,9 @@ bool PDC_can_change_color(void)
     return is_nt;
 }
 
-int PDC_color_content(short color, short *red, short *green, short *blue)
+int PDC_color_content(int color, int *red, int *green, int *blue)
 {
-    if (color < 16 && !pdc_conemu)
+    if (color < 16 && !(pdc_conemu || pdc_wt))
     {
         COLORREF *color_table = _get_colors();
 
@@ -697,7 +685,7 @@ int PDC_color_content(short color, short *red, short *green, short *blue)
     return OK;
 }
 
-int PDC_init_color(short color, short red, short green, short blue)
+int PDC_init_color(int color, int red, int green, int blue)
 {
     if (red == -1 && green == -1 && blue == -1)
     {
@@ -705,7 +693,7 @@ int PDC_init_color(short color, short red, short green, short blue)
         return OK;
     }
 
-    if (color < 16 && !pdc_conemu)
+    if (color < 16 && !(pdc_conemu || pdc_wt))
     {
         COLORREF *color_table = _get_colors();
 
@@ -723,11 +711,23 @@ int PDC_init_color(short color, short red, short green, short blue)
     }
     else
     {
-        pdc_color[color].r = red;
-        pdc_color[color].g = green;
-        pdc_color[color].b = blue;
+        pdc_color[color].r = (short)red;
+        pdc_color[color].g = (short)green;
+        pdc_color[color].b = (short)blue;
         pdc_color[color].mapped = TRUE;
     }
 
     return OK;
+}
+
+/* Does nothing in the Win32 flavor of PDCurses.  Included solely because
+without this,  we get an unresolved external... */
+
+void PDC_set_resize_limits( const int new_min_lines, const int new_max_lines,
+                  const int new_min_cols, const int new_max_cols)
+{
+    INTENTIONALLY_UNUSED_PARAMETER( new_min_lines);
+    INTENTIONALLY_UNUSED_PARAMETER( new_max_lines);
+    INTENTIONALLY_UNUSED_PARAMETER( new_min_cols);
+    INTENTIONALLY_UNUSED_PARAMETER( new_max_cols);
 }

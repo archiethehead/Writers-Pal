@@ -6,10 +6,11 @@
 
 scriptWriter::scriptWriter() {
 
+
 	initscr();
 	raw();
 	keypad(stdscr, true);
-	resize_term(30, 30);
+	resize_term(30, 120);
 
 	maxx = getmaxx(stdscr);
 	maxy = getmaxy(stdscr);
@@ -258,7 +259,6 @@ void scriptWriter::mainLoop() {
 	int key = 0;
 
 	bool writing = true;
-	bool resize = false;
 
 	while (writing) {
  
@@ -268,12 +268,6 @@ void scriptWriter::mainLoop() {
 			
 			mapLines();
 		
-		}
-
-		if (resize) {
-
-			maxx = getmaxx(stdscr), maxy = getmaxy(stdscr);
-
 		}
 		
 		for (int i = 0; i < maxy; i++) {
@@ -326,8 +320,21 @@ void scriptWriter::mainLoop() {
 		}
 
 		else if (key == KEY_RESIZE) {
-			
-			resize = true;
+
+			resize_term(0,0);
+			maxx = getmaxx(stdscr);
+			maxy = getmaxy(stdscr);
+
+			int scriptSize = SCRIPT_SIZE;
+			if (scriptSize < maxy) {
+
+				for (int i = 0; i < (maxy - scriptSize); i++) {
+
+					addLine(scriptSize + i, DESCRIPTION);
+
+				}
+
+			}
 
 		}
 
