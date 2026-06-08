@@ -55,7 +55,8 @@ class scriptWriter {
 
 	int calculateLineCount(scriptLine& line);
 	int findLineNum(int index);
-
+	std::string sliceLine(scriptLine& line, int lineNum);
+	
 	void centreText(std::string& text);
 	void sortBuffer();
 	void mapLines();

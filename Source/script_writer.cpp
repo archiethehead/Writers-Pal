@@ -9,7 +9,7 @@ scriptWriter::scriptWriter() {
 	initscr();
 	raw();
 	keypad(stdscr, true);
-	resize_term(30, 120);
+	resize_term(30, 30);
 
 	maxx = getmaxx(stdscr);
 	maxy = getmaxy(stdscr);
@@ -25,7 +25,7 @@ scriptWriter::scriptWriter() {
 
 	addLine(0, DESCRIPTION, "INT. THERAPISTS OFFICE -- DAY");
 	addLine(1, CHARACTER, "THERAPIST");
-	addLine(2, DIALOGUE, "Did you do it?");
+	addLine(2, DIALOGUE, "Did you do it?sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss");
 	addLine(3, DIALOGUE, " ");
 
 	coverPage();
@@ -64,8 +64,8 @@ int scriptWriter::calculateLineCount(scriptLine& line) {
 	}
 
 	int padding = FIND_SPACE(line);
-	int currentSpace = line.text.length() + padding;
-	float maxSpace = maxx - padding;
+	int currentSpace = line.text.length();
+	float maxSpace = maxx - (padding * 2);
 
 	float lineCount = currentSpace / maxSpace;
 	int finalCount = (int)ceilf(lineCount);
@@ -76,28 +76,51 @@ int scriptWriter::calculateLineCount(scriptLine& line) {
 
 int scriptWriter::findLineNum(int index) {
 
-	//if (index == 0) {
-	//
-	//	return 0;
-	//
-	//}
+	if (index == 0) {
+	
+		return 1;
+	
+	}
 
-	//scriptLine* line = (lineMap[index]);
-	//scriptLine* temp = line;
-	//int counter = 0;
+	scriptLine* line = (lineMap[index]);
+	scriptLine* temp = line;
+	int counter = 0;
 
-	//while (temp == line) {
-	//	
-	//	counter++;
-	//	temp = lineMap[index - counter];
-	//
-	//}
+	while (temp == line) {
+		
+		counter++;
+		temp = lineMap[index - counter];
+	
+	}
 
-	//return counter;
+	return counter;
 
 	return 1;
 
 }
+
+std::string scriptWriter::sliceLine(scriptLine& line, int lineNum) {
+
+	int numOfLines = calculateLineCount(line);
+	int len = maxx - (FIND_SPACE(line) * 2);
+	int pos = len * (lineNum - 1);
+	
+	if (lineNum == numOfLines) {
+	
+		len = line.text.length();
+		if (numOfLines > 1) {
+		
+			len = len - (len * (numOfLines));
+		
+		}
+	
+	}
+
+	std::string lineText = line.text.substr(pos, len);
+	return lineText;
+
+}
+
 
 void scriptWriter::centreText(std::string& text) {
 
@@ -117,6 +140,7 @@ void scriptWriter::mapLines() {
 
 	int bufferSize = SCRIPT_SIZE;
 	int lineCount = 0;
+	int offset = 0;
 
 	for (int i = 0; i < bufferSize; i++) {
 		
@@ -125,9 +149,11 @@ void scriptWriter::mapLines() {
 
 		for (int j = 0; j < lineCount; j++) {
 
-			lineMap.insert_or_assign(i + j, &(currentLine));
+			lineMap.insert_or_assign(i + j + offset, &(currentLine));
 		
-		} 
+		}
+
+		offset += lineCount - 1;
 
 	}
 
@@ -232,6 +258,7 @@ void scriptWriter::mainLoop() {
 	int key = 0;
 
 	bool writing = true;
+	bool resize = false;
 
 	while (writing) {
  
@@ -242,14 +269,22 @@ void scriptWriter::mainLoop() {
 			mapLines();
 		
 		}
+
+		if (resize) {
+
+			maxx = getmaxx(stdscr), maxy = getmaxy(stdscr);
+
+		}
 		
 		for (int i = 0; i < maxy; i++) {
 
 			scriptLine* line = lineMap[i + relativey];
 			scriptLine currentLine = *line;
 
-			std::string text = currentLine.text;
+			int lineNum = findLineNum(i + relativey);
+			std::string text = sliceLine(currentLine, lineNum);
 			int currentSpace = FIND_SPACE(currentLine);
+
 
 			mvaddstr(i, 0 + currentSpace, text.c_str());
 		
@@ -291,8 +326,8 @@ void scriptWriter::mainLoop() {
 		}
 
 		else if (key == KEY_RESIZE) {
-		
-			maxx = getmaxx(stdscr), maxy = getmaxy(stdscr);
+			
+			resize = true;
 
 		}
 
