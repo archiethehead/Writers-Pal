@@ -63,6 +63,8 @@ class scriptWriter {
 	void sortBuffer();
 	void mapLines();
 
+	void addChar(scriptLine& line, int x, int lineNum, char character);
+
 	bool movex(int& x, int modifier);
 	void movey(int& y, int &relativey, int modifier);
 

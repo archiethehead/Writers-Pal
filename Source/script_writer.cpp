@@ -142,7 +142,6 @@ std::string scriptWriter::sliceLine(scriptLine& line, int lineNum) {
 
 }
 
-
 void scriptWriter::recentreText(std::string& text) {
 
 	int len = text.length();
@@ -191,18 +190,48 @@ void scriptWriter::mapLines() {
 
 	for (int i = 0; i < bufferSize; i++) {
 		
-		scriptLine& currentLine = lineBuffer[i];
-		int lineCount = calculateLineCount(currentLine);
+		scriptLine* currentLine = &lineBuffer[i];
+		int lineCount = calculateLineCount(*currentLine);
 
 		for (int j = 0; j < lineCount; j++) {
 
-			lineMap.insert_or_assign(i + j + offset, &(currentLine));
+			lineMap.insert_or_assign(i + j + offset, currentLine);
 		
 		}
 
 		offset += lineCount - 1;
 
 	}
+
+}
+
+void scriptWriter::addChar(scriptLine& line, int x, int lineNum, char character) {
+
+	int numOfLines = calculateLineCount(line);
+	int len = maxx - (FIND_SPACE(line) * 2);
+	int pos = len * (lineNum - 1);
+
+	if (lineNum == numOfLines) {
+
+		len = line.text.length();
+		if (numOfLines > 1) {
+
+			len = len - (len * (numOfLines));
+
+		}
+
+	}
+
+	pos += x;
+
+	if (x > len - 1) {
+
+		line.text.insert(line.text.size(), 1, character);
+		return;
+	
+	}
+
+	line.text.insert(pos, 1, character);
 
 }
 
@@ -413,9 +442,9 @@ void scriptWriter::mainLoop() {
 
 		else {
 
-			x++;
-			char key_value[] = { key, '\0' };
-			mvprintw(y, x, key_value);
+			scriptLine* currentLine = lineMap[y + relativey];
+			scriptLine line = *currentLine;
+			addChar(*(currentLine), x - (FIND_SPACE(line)), findLineNum(y + relativey), (char)key);
 
 		}
 	
