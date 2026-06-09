@@ -1,15 +1,17 @@
-////////////////////
-// debug_output.c //
-////////////////////
+//////////////////////
+// debug_output.cpp //
+//////////////////////
 
-#include "debug_output.h"
+#ifdef __cplusplus
+
+#include "debug_output/debug_output.h"
 
 #ifdef _MSC_VER
 
-void dbouts(const char* string) {
+void dbout(const char* string) {
 
 	int size = sizeof(string);
-	char* stringNewLine = (char*)malloc(size + 2);
+	char* stringNewLine = (char*)malloc(size + 10);
 
 	if (!stringNewLine) { return; }
 
@@ -22,7 +24,7 @@ void dbouts(const char* string) {
 
 }
 
-void dbouti(int num) {
+void dbout(int num) {
 
 	int len = snprintf(NULL, 0, "%d", num);
 	char* string = (char*)malloc(len + 3);
@@ -38,7 +40,7 @@ void dbouti(int num) {
 
 }
 
-void dboutf(float num) {
+void dbout(float num) {
 
 	int len = snprintf(NULL, 0, "%f", num);
 	char* string = (char*)malloc(len + 3);
@@ -56,22 +58,24 @@ void dboutf(float num) {
 
 #else
 
-void dbouts(const char* string) {
+void dbout(const char* string) {
 
-	printf("%s", string);
-
-}
-
-void dbouti(int num) {
-
-	prtinf("%d", num);
+	std::cout << string << std::endl;
 
 }
 
-void dboutf(float num) {
+void dbout(int num) {
 
-	printf("%f", num);
+	std::cout << num << std::endl;
 
 }
+
+void dbout(float num) {
+
+	std::cout << num << std::endl;
+
+}
+
+#endif
 
 #endif

@@ -6,21 +6,33 @@
 
 scriptWriter::scriptWriter() {
 
+	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	fontInfo.cbSize = sizeof(CONSOLE_FONT_INFOEX);
+	GetCurrentConsoleFontEx(consoleHandle, FALSE, &fontInfo);
+
+	CONSOLE_FONT_INFOEX newFontInfo = fontInfo;
+	newFontInfo.FontFamily = 0x0;
+	wcscpy_s(newFontInfo.FaceName, L"Courier");
+
+	SetCurrentConsoleFontEx(consoleHandle, TRUE, &newFontInfo);
 
 	initscr();
 	raw();
 	keypad(stdscr, true);
-	resize_term(30, 120);
+	resize_term(0, 0);
 
+	pageheight = 55;
 	maxx = getmaxx(stdscr);
 	maxy = getmaxy(stdscr);
 
 	bufferModified = true;
+	mapModified = true;
 
 	scriptName = "The Sandman";
-	writerName = "Archie Healy";
+	writerName = "Written by Archie Healy";
 	scriptType = "Draft One";
 
+	centreText(writerName);
 	centreText(scriptName);
 	centreText(scriptType);
 
@@ -38,6 +50,8 @@ scriptWriter::scriptWriter() {
 scriptWriter::~scriptWriter() {
 
 	endwin();
+	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetCurrentConsoleFontEx(consoleHandle, TRUE, &fontInfo);
 
 }
 
@@ -102,6 +116,12 @@ int scriptWriter::findLineNum(int index) {
 
 std::string scriptWriter::sliceLine(scriptLine& line, int lineNum) {
 
+	if (line.text == "") {
+	
+		return "";
+	
+	}
+
 	int numOfLines = calculateLineCount(line);
 	int len = maxx - (FIND_SPACE(line) * 2);
 	int pos = len * (lineNum - 1);
@@ -123,10 +143,36 @@ std::string scriptWriter::sliceLine(scriptLine& line, int lineNum) {
 }
 
 
+void scriptWriter::recentreText(std::string& text) {
+
+	int len = text.length();
+	int startIndex = -1;
+
+	const char* cstring = text.c_str();
+	char currentChar = ' ';
+	while (currentChar == ' ') {
+	
+		startIndex++;
+		currentChar = cstring[startIndex];
+	
+	}
+
+	text = text.substr(startIndex, len - ((startIndex)));
+	centreText(text);
+	mapModified = true;
+
+}
+
 void scriptWriter::centreText(std::string& text) {
 
-	std::string buffer = text;
-	text = std::string((maxx - buffer.length()) / 2, ' ') + buffer;
+	int len = text.length();
+	if (maxx < len) {
+	
+		return;
+		 
+	}
+
+	text = std::string((maxx - len) / 2, ' ') + text;
 
 }
 
@@ -204,13 +250,13 @@ void scriptWriter::coverPage() {
 	int size = SCRIPT_SIZE;
 		
 	for (int i = 0; i < size; i++) {
-	
-		lineBuffer[i].startLineNum += maxy;
+		
+		lineBuffer[i].startLineNum += pageheight;
 	
 	}
 
-	int halfPoint = maxy / 2;
-	for (int i = 0; i < maxy; i++) {
+	int halfPoint = pageheight / 2;
+	for (int i = 0; i < pageheight; i++) {
 	
 		if (i == halfPoint) {
 		
@@ -226,11 +272,7 @@ void scriptWriter::coverPage() {
 
 		else if (i == halfPoint + 3) {
 
-			std::string writtenBy = "Written by ";
-			writtenBy += writerName;
-			centreText(writtenBy);
-
-			addLine(i, COVER, writtenBy);
+			addLine(i, COVER, writerName);
 
 		}
 
@@ -247,8 +289,18 @@ void scriptWriter::coverPage() {
 void scriptWriter::addLine(int startLine, float type, std::string content) {
 
 	scriptLine newLine(startLine, type, content);
+	
+	int size = SCRIPT_SIZE;
+	int maxSize = lineBuffer.capacity();
+	if (size + 1 == maxSize) {
+	
+		lineBuffer.reserve(size + 100);
+	
+	}
+
 	lineBuffer.push_back(newLine);
 	bufferModified = true;
+	mapModified = true;
 
 }
 
@@ -261,18 +313,40 @@ void scriptWriter::mainLoop() {
 	bool writing = true;
 
 	while (writing) {
- 
+	
 		clear();
 
-		if (bufferModified) { 
+		if (mapModified) { 
 			
 			mapLines();
+		
+		}
+
+		if (bufferModified) {
+		
+			sortBuffer();
 		
 		}
 		
 		for (int i = 0; i < maxy; i++) {
 
 			scriptLine* line = lineMap[i + relativey];
+
+			if (!line) {
+			
+				for (int n = 0; n < maxy - i; n++) {
+				
+					addLine(SCRIPT_SIZE, DESCRIPTION);
+					scriptLine& newLine = lineBuffer[SCRIPT_SIZE - 1];
+					lineMap.insert_or_assign(i + relativey + n, &(newLine));
+				
+				}
+
+				mapLines();
+				line = lineMap[i + relativey];
+			
+			}
+
 			scriptLine currentLine = *line;
 
 			int lineNum = findLineNum(i + relativey);
@@ -325,16 +399,13 @@ void scriptWriter::mainLoop() {
 			maxx = getmaxx(stdscr);
 			maxy = getmaxy(stdscr);
 
-			int scriptSize = SCRIPT_SIZE;
-			if (scriptSize < maxy) {
+			recentreText(scriptName);
+			recentreText(scriptType);
+			recentreText(writerName);
 
-				for (int i = 0; i < (maxy - scriptSize); i++) {
-
-					addLine(scriptSize + i, DESCRIPTION);
-
-				}
-
-			}
+			lineMap[(pageheight) / 2]->text = scriptName;
+			lineMap[((pageheight) / 2) + 1]->text = scriptType;
+			lineMap[((pageheight) / 2) + 3]->text = writerName;
 
 		}
 

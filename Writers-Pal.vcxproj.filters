@@ -9,6 +9,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
+    <Filter Include="External">
+      <UniqueIdentifier>{7a9c4f91-4ebb-41d4-815e-bc81da332b2f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\script_writer.hpp">
@@ -17,8 +20,8 @@
     <ClInclude Include="Include\line_types.hpp">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="Include\debug_output.h">
-      <Filter>Include</Filter>
+    <ClInclude Include="External\debug_output\debug_output.h">
+      <Filter>External</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -31,8 +34,11 @@
     <ClCompile Include="Source\line_types.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\debug_output.c">
-      <Filter>Source</Filter>
+    <ClCompile Include="External\debug_output\debug_output.c">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="External\debug_output\debug_output.cpp">
+      <Filter>External</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

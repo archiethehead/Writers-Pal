@@ -12,21 +12,17 @@
 
 #ifdef _DEBUG
 
-#include "debug_output.h"
-#define DBOUTS(x) dbouts(x)
-#define DBOUTI(x) dbouti(x)
-#define DBOUTF(x) dboutf(x)
+#include "debug_output/debug_output.h"
+#define DBOUT(x) dbout(x)
 
 #else
 
-#define DBOUTS(x)
-#define DBOUTI(x)
-#define DBOUTF(x)
+#define DBOUT(x)
 
 #endif
 
 #include "line_types.hpp"
-#include <PDCursesMod/curses.h>
+#include <curses/PDCursesMod/curses.h>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -37,8 +33,11 @@ class scriptWriter {
 
 	// Class Variables
 
+	CONSOLE_FONT_INFOEX fontInfo;
+
 	bool readOnly;
 	bool bufferModified;
+	bool mapModified;
 
 	std::vector<scriptLine> lineBuffer;
 	std::unordered_map<int, scriptLine*> lineMap;
@@ -49,6 +48,7 @@ class scriptWriter {
 
 	float currentType;
 
+	int pageheight;
 	int maxx;
 	int maxy;
 
@@ -58,6 +58,7 @@ class scriptWriter {
 	int findLineNum(int index);
 	std::string sliceLine(scriptLine& line, int lineNum);
 	
+	void recentreText(std::string& text);
 	void centreText(std::string& text);
 	void sortBuffer();
 	void mapLines();
