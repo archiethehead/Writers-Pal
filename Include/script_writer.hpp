@@ -59,6 +59,7 @@ class scriptWriter {
 	int calculateLineCount(scriptLine& line);
 	int findLineNum(int index);
 	std::string sliceLine(scriptLine& line, int lineNum);
+	int lastLineLen(scriptLine& line);
 	
 	void recentreText(std::string& text);
 	void centreText(std::string& text);

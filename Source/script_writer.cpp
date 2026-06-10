@@ -75,7 +75,7 @@ int scriptWriter::calculateLineCount(scriptLine& line) {
 	// |
 	// V
 
-	if (!(line.text.size()) && !(line.lineType)) {
+	if (!(line.text.size())) {
 	
 		return 1;
 	
@@ -118,7 +118,7 @@ int scriptWriter::findLineNum(int index) {
 std::string scriptWriter::sliceLine(scriptLine& line, int lineNum) {
 
 	int size = line.text.size();
-	if (size == 1 || line.text == "") {
+	if (size == 0 || line.text == "") {
 	
 		return "";
 	
@@ -147,6 +147,15 @@ std::string scriptWriter::sliceLine(scriptLine& line, int lineNum) {
 
 	std::string lineText = line.text.substr(pos, len);
 	return lineText;
+
+}
+
+int scriptWriter::lastLineLen(scriptLine& line) {
+
+	int numOfLines = calculateLineCount(line);
+	int len = maxx - (FIND_SPACE(line) * 2);
+	int finalLineLen = (line.text.length() - 1) - (len * (numOfLines - 1));
+	return finalLineLen;
 
 }
 
@@ -195,6 +204,8 @@ void scriptWriter::mapLines() {
 	int bufferSize = SCRIPT_SIZE;
 	int lineCount = 0;
 	int offset = 0;
+
+	lineMap.clear();
 
 	for (int i = 0; i < bufferSize; i++) {
 		
@@ -293,7 +304,8 @@ int scriptWriter::backspace(scriptLine& line, int x, int lineNum) {
 
 void scriptWriter::deleteLine(scriptLine& line) {
 
-
+	lineBuffer.erase(lineBuffer.begin() + line.startLineNum);
+	mapLines();
 
 }
 
@@ -302,7 +314,7 @@ bool scriptWriter::movex(int& x, scriptLine& line, int relativeLineNum, int modi
 	int minSpace = FIND_SPACE(line);
 	float maxSpace = maxx - minSpace;
 	
-	if (x == minSpace && modifier == NEGATIVE) {
+	if (x <= minSpace && modifier == NEGATIVE) {
 	
 		if (!line.startLineNum) {
 		
@@ -320,13 +332,13 @@ bool scriptWriter::movex(int& x, scriptLine& line, int relativeLineNum, int modi
 		
 		}
 		
-		x = maxSpace - 1;
+		x = maxSpace;
 		return true;
 		
 	
 	}
 
-	else if (x == maxSpace - 1 && modifier == POSITIVE) {
+	else if (x > maxSpace - 1 && modifier == POSITIVE) {
 	
 		if (line.startLineNum == (SCRIPT_SIZE)-1) {
 		
@@ -458,7 +470,11 @@ void scriptWriter::mainLoop() {
 			sortBuffer();
 		
 		}
+
+		int absolutey = y + relativey;
 		
+
+
 		for (int i = 0; i < maxy; i++) {
 
 			scriptLine* line = lineMap[i + relativey];
@@ -468,8 +484,6 @@ void scriptWriter::mainLoop() {
 				for (int n = 0; n < maxy - i; n++) {
 				
 					addLine(SCRIPT_SIZE, DESCRIPTION);
-					scriptLine& newLine = lineBuffer[SCRIPT_SIZE - 1];
-					lineMap.insert_or_assign(i + relativey + n, &(newLine));
 				
 				}
 
@@ -487,7 +501,14 @@ void scriptWriter::mainLoop() {
 		
 		}
 
-		scriptLine* currentLine = lineMap[y + relativey];
+		scriptLine* currentLine = lineMap[absolutey];
+		scriptLine* previousLine = currentLine;
+
+		if (absolutey != 0) {
+		
+			previousLine = lineMap[absolutey - 1];
+		
+		}
 
 		if (currentLine->lineType != currentType) {
 		
@@ -511,7 +532,7 @@ void scriptWriter::mainLoop() {
 
 		else if (key == KEY_RIGHT) {
 
-			bool isMoveY = movex(x, *(currentLine), findLineNum(y + relativey), POSITIVE);
+			bool isMoveY = movex(x, *(currentLine), findLineNum(absolutey), POSITIVE);
 
 			if (isMoveY) {
 			
@@ -523,7 +544,7 @@ void scriptWriter::mainLoop() {
 
 		else if (key == KEY_LEFT) {
 		
-			bool isMoveY = movex(x, *(currentLine), findLineNum(y + relativey), NEGATIVE);
+			bool isMoveY = movex(x, *(currentLine), findLineNum(absolutey), NEGATIVE);
 
 			if (isMoveY) {
 			
@@ -561,25 +582,48 @@ void scriptWriter::mainLoop() {
 
 		}
 
-		else if (readOnly) { continue; }
+		else if (readOnly || currentType == COVER) { continue; }
 
 		else if (key == 8) {
-		
-			int isFinalLine = backspace(*(currentLine), x - minSpace, findLineNum(y + relativey));
 
-			if (isFinalLine) {
+			int lastLineLength = lastLineLen(*(previousLine));
 
-				x = minSpace + isFinalLine;
+			if (currentLine->text.size() == 0 && SCRIPT_SIZE != pageheight + 1) {
+			
+				deleteLine(*(currentLine));
+				int prevMinSpace = FIND_SPACE_POINTER(previousLine);
+				currentType = previousLine->lineType;
+				x = prevMinSpace + lastLineLength + 1;
+				movey(y, relativey, NEGATIVE);
 
 			}
 
+
 			else {
 
-				bool isMoveY = movex(x, *(currentLine), findLineNum(y + relativey), NEGATIVE);
+				int isFinalLine = backspace(*(currentLine), x - minSpace, findLineNum(absolutey));
 
-				if (isMoveY) {
+				if (isFinalLine) {
 
-					movey(y, relativey, NEGATIVE);
+					x = minSpace + isFinalLine;
+
+				}
+
+				else {
+
+					bool isMoveY = movex(x, *(currentLine), findLineNum(absolutey), NEGATIVE);
+
+					if (!lastLineLength) {
+					
+						isMoveY = movex(x, *(currentLine), findLineNum(absolutey), NEGATIVE);
+					
+					}
+
+					if (isMoveY) {
+
+						movey(y, relativey, NEGATIVE);
+
+					}
 
 				}
 
@@ -589,7 +633,7 @@ void scriptWriter::mainLoop() {
 
 		else {
 
-			int isFinalLine = addChar(*(currentLine), x - FIND_SPACE_POINTER(currentLine), findLineNum(y + relativey), (char)key);
+			int isFinalLine = addChar(*(currentLine), x - FIND_SPACE_POINTER(currentLine), findLineNum(absolutey), (char)key);
 			
 			if (isFinalLine) {
 			
@@ -599,12 +643,13 @@ void scriptWriter::mainLoop() {
 
 			else {
 
-				bool isMoveY = movex(x, *(currentLine), findLineNum(y + relativey), POSITIVE);
+				bool isMoveY = movex(x, *(currentLine), findLineNum(absolutey), POSITIVE);
 
 				if (isMoveY) {
 
 					mapLines();
 					movey(y, relativey, POSITIVE);
+					x++;
 
 				}
 
