@@ -19,7 +19,7 @@ scriptWriter::scriptWriter() {
 	initscr();
 	nocbreak();
 	noecho();
-	cbreak();
+	raw();
 	keypad(stdscr, true);
 	resize_term(0, 0);
 
@@ -614,6 +614,21 @@ void scriptWriter::mainLoop() {
 
 		else if (readOnly || currentType == COVER) { continue; }
 
+
+		else if (key == CTRL('x')) {
+		
+			currentLine->cycleType(true);
+			mapModified = true;
+		
+		}
+
+		else if (key == CTRL('z')) {
+		
+			currentLine->cycleType(false);
+			mapModified = true;
+		
+		}
+
 		else if (key == KEY_ENTER || key == 10 || key == 13) {
 		
 			moveDownLines(y + relativey , currentType);
@@ -679,7 +694,7 @@ void scriptWriter::mainLoop() {
 		
 		}
 
-		else {
+		else if (key > 31 && key < 127) {
 
 			// isFinalLine stores either 0, or the length of the final line of the current line,
 			// with the return variable being decided from addChar as to whether or not x is

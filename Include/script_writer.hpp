@@ -7,6 +7,8 @@
 #define POSITIVE 1
 #define NEGATIVE -1
 
+#define CTRL(x) ((x) & 0x1f)
+
 #define SCRIPT_SIZE scriptWriter::lineBuffer.size()
 #define LAST_LINE scriptWriter::lineBuffer[];
 #define FIND_SPACE(x) ((int)ceilf(maxx * x.lineType))

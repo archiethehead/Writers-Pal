@@ -26,13 +26,15 @@ scriptLine::~line() {
 
 void scriptLine::cycleType(bool right) {
 
-	switch (right) {
+	switch ((int)right) {
 	
-	case true:
+	case 1:
 		cycle_val <<= 1;
+		break;
 
-	case false:
+	case 0:
 		cycle_val >>= 1;
+		break;
 
 	}
 
@@ -41,19 +43,24 @@ void scriptLine::cycleType(bool right) {
 	case 0:
 		cycle_val = 4;
 		lineType = CHARACTER;
+		break;
 
 	case 1:
 		lineType = DESCRIPTION;
+		break;
 	
 	case 2:
 		lineType = DIALOGUE;
+		break;
 
 	case 4:
 		lineType = CHARACTER;
+		break;
 
 	case 8:
 		cycle_val = 1;
 		lineType = DESCRIPTION;
+		break;
 	
 	}
 
