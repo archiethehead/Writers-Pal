@@ -8,7 +8,9 @@
 #define NEGATIVE -1
 
 #define SCRIPT_SIZE scriptWriter::lineBuffer.size()
+#define LAST_LINE scriptWriter::lineBuffer[];
 #define FIND_SPACE(x) ((int)ceilf(maxx * x.lineType))
+#define FIND_SPACE_POINTER(x) ((int)ceilf(maxx * x->lineType))
 
 #ifdef _DEBUG
 
@@ -62,10 +64,13 @@ class scriptWriter {
 	void centreText(std::string& text);
 	void sortBuffer();
 	void mapLines();
+	void moveDownLines(int y, float type);
 
-	void addChar(scriptLine& line, int x, int lineNum, char character);
+	int addChar(scriptLine& line, int x, int lineNum, char character);
+	int backspace(scriptLine&  line, int x, int lineNum);
+	void deleteLine(scriptLine& line);
 
-	bool movex(int& x, int modifier);
+	bool movex(int& x, scriptLine& line, int relativeLineNum, int modifier);
 	void movey(int& y, int &relativey, int modifier);
 
 	void coverPage();
