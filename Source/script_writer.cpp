@@ -222,28 +222,38 @@ void scriptWriter::mapLines() {
 
 	}
 
+	mapModified = false;
+
+
 }
 
 void scriptWriter::moveDownLines(int y, float type) {
 
-	//int size = SCRIPT_SIZE;
-	//if (y == size - 1) {
+	int size = SCRIPT_SIZE;
+	int numOfLines = size - y - 1;
 
-	//	addLine((y + 1), type);
-	//	lineMap.insert_or_assign(size, &(lineBuffer[SCRIPT_SIZE - 1]));
+	for (int i = 1; i < numOfLines; i++) {
+	
+		lineBuffer[y + i].startLineNum++;
+	
+	}
 
-	//}
+	addLine(y + 1, type);
 
-	//y--;
-	//for (int i = 1; i < SCRIPT_SIZE - y; i++) {
-
-	//	scriptLine* temp = lineMap[y + i];
-	//	lineMap.insert_or_assign(y + i, lineMap[y + i]);
-	//	lineMap.insert_or_assign(y + i + 1, temp);
-	//
-	//}
+	bufferModified = true;
+	mapModified = true;
 
 }
+
+// The return variable for thr addChar and backspace functions below can either 
+// be 0 (signifying that x isn't past the end of the text), or non-zero (x is past
+// the end of the text). If non-zero, the value must be equal to the length of the
+// final line of the block.
+//
+// |
+// |
+// |
+// V
 
 int scriptWriter::addChar(scriptLine& line, int x, int lineNum, char character) {
 
@@ -278,8 +288,6 @@ int scriptWriter::addChar(scriptLine& line, int x, int lineNum, char character) 
 
 }
 
-
-
 int scriptWriter::backspace(scriptLine& line, int x, int lineNum) {
 
 	int numOfLines = calculateLineCount(line);
@@ -304,8 +312,11 @@ int scriptWriter::backspace(scriptLine& line, int x, int lineNum) {
 
 void scriptWriter::deleteLine(scriptLine& line) {
 
+	// Clearing the map removes garbage data left over from
+	// past writes, and prevents crashes with backspacing.
+
 	lineBuffer.erase(lineBuffer.begin() + line.startLineNum);
-	mapLines();
+	mapModified = true;
 
 }
 
@@ -316,6 +327,8 @@ bool scriptWriter::movex(int& x, scriptLine& line, int relativeLineNum, int modi
 	
 	if (x <= minSpace && modifier == NEGATIVE) {
 	
+		// Base case, at the top of the script.
+
 		if (!line.startLineNum) {
 		
 			return false;
@@ -339,7 +352,7 @@ bool scriptWriter::movex(int& x, scriptLine& line, int relativeLineNum, int modi
 	}
 
 	else if (x > maxSpace - 1 && modifier == POSITIVE) {
-	
+
 		if (line.startLineNum == (SCRIPT_SIZE)-1) {
 		
 			return false;
@@ -372,6 +385,10 @@ void scriptWriter::movey(int& y, int& relativey, int modifier) {
 	}
 
 	else if (modifier == NEGATIVE && y == 0) {
+
+		// Base case, at
+		// the top of the
+		// script.
 
 		if (!relativey) {
 		
@@ -435,6 +452,16 @@ void scriptWriter::addLine(int startLine, float type, std::string content) {
 	
 	int size = SCRIPT_SIZE;
 	int maxSize = lineBuffer.capacity();
+
+	// Reserving space for the vector before it is
+	// forced to on a 0-capacity write prevents it
+	// from corrupting neighbouring variables,
+	// primarily the line map. Under NO CIRCUMSTANCES
+	// is this conditional to be removed.
+	//
+	// |
+	// V
+
 	if (size + 1 == maxSize) {
 	
 		lineBuffer.reserve(size + 100);
@@ -459,15 +486,15 @@ void scriptWriter::mainLoop() {
 	
 		clear();
 
+		if (bufferModified) {
+
+			sortBuffer();
+
+		}
+
 		if (mapModified) { 
 			
 			mapLines();
-		
-		}
-
-		if (bufferModified) {
-		
-			sortBuffer();
 		
 		}
 
@@ -509,6 +536,9 @@ void scriptWriter::mainLoop() {
 			previousLine = lineMap[absolutey - 1];
 		
 		}
+
+		// Sets x to the minimum boundary if we've
+		// wrapped to a different block.
 
 		if (currentLine->lineType != currentType) {
 		
@@ -584,9 +614,19 @@ void scriptWriter::mainLoop() {
 
 		else if (readOnly || currentType == COVER) { continue; }
 
+		else if (key == KEY_ENTER || key == 10 || key == 13) {
+		
+			moveDownLines(y + relativey , currentType);
+			movey(y, relativey, POSITIVE);
+
+		}
+		
 		else if (key == 8) {
 
 			int lastLineLength = lastLineLen(*(previousLine));
+
+			// Checks to see if a line needs to, and can be, deleted from the line
+			// buffer.
 
 			if (currentLine->text.size() == 0 && SCRIPT_SIZE != pageheight + 1) {
 			
@@ -601,6 +641,10 @@ void scriptWriter::mainLoop() {
 
 			else {
 
+				// isFinalLine stores either 0, or the length of the final line of the current line,
+				// with the return variable being decided from backspace as to whether or not x is
+				// logically past the end of the script line (0 = no, anything else = yes).
+
 				int isFinalLine = backspace(*(currentLine), x - minSpace, findLineNum(absolutey));
 
 				if (isFinalLine) {
@@ -612,6 +656,10 @@ void scriptWriter::mainLoop() {
 				else {
 
 					bool isMoveY = movex(x, *(currentLine), findLineNum(absolutey), NEGATIVE);
+
+					// if this is the last line of the current block and wrapping is about to occur,
+					// the cursor must be moved twice in order to move it completely out-of-bounds,
+					// and prevent accidental writing on a different block by not wrapping back up.
 
 					if (!lastLineLength) {
 					
@@ -632,6 +680,10 @@ void scriptWriter::mainLoop() {
 		}
 
 		else {
+
+			// isFinalLine stores either 0, or the length of the final line of the current line,
+			// with the return variable being decided from addChar as to whether or not x is
+			// logically past the end of the script line (0 = no, anything else = yes).
 
 			int isFinalLine = addChar(*(currentLine), x - FIND_SPACE_POINTER(currentLine), findLineNum(absolutey), (char)key);
 			
