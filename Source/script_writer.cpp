@@ -31,23 +31,7 @@ scriptWriter::scriptWriter() {
 
 	bufferModified = true;
 	mapModified = true;
-
-	scriptName = "The Sandman";
-	writerName = "Written by Archie Healy";
-	scriptType = "Draft One";
-
-	centreText(writerName);
-	centreText(scriptName);
-	centreText(scriptType);
-
-	addLine(0, DESCRIPTION, "INT. THERAPISTS OFFICE -- DAY");
-	addLine(1, CHARACTER, "THERAPIST");
-	addLine(2, DIALOGUE, "Did you do it?sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss");
-	addLine(3, DIALOGUE, " ");
-
-	coverPage();
-	sortBuffer();
-	mapLines();
+	readOnly = true;
 
 }
 
@@ -59,10 +43,34 @@ scriptWriter::~scriptWriter() {
 
 }
 
-bool scriptWriter::openScript() {
+bool scriptWriter::openScript(bool isReadOnly) {
+
+	readOnly = isReadOnly;
 
 	mainLoop();
 	return true;
+
+}
+
+void scriptWriter::newScript(std::string name, std::string type) {
+
+	readOnly = false;
+
+	scriptName = name;
+	writerName = "Written by Archie Healy";
+	scriptType = type;
+
+	centreText(writerName);
+	centreText(scriptName);
+	centreText(scriptType);
+
+	addLine(0, DESCRIPTION, "I am the first line, please edit me :)");
+
+	coverPage();
+	sortBuffer();
+	mapLines();
+
+	mainLoop();
 
 }
 

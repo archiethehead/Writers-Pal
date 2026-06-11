@@ -37,6 +37,8 @@ class scriptWriter {
 
 	// Class Variables
 
+private:
+
 	CONSOLE_FONT_INFOEX fontInfo;
 
 	bool readOnly;
@@ -57,6 +59,15 @@ class scriptWriter {
 	int maxy;
 
 	//Class Methods
+
+public:
+
+	scriptWriter();
+	~scriptWriter();
+	bool openScript(bool isReadOnly = false);
+	void newScript(std::string name, std::string type);
+
+private:
 
 	int calculateLineCount(scriptLine& line);
 	int findLineNum(int index);
@@ -81,11 +92,5 @@ class scriptWriter {
 	void coverPage();
 	void addLine(int startLine, float type, std::string content = "");
 	void mainLoop();
-
-public:
-
-	scriptWriter();
-	~scriptWriter();
-	bool openScript();
 
 };

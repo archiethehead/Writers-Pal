@@ -75,6 +75,7 @@
     <IntDir>$(ProjectDir)Intermediary\</IntDir>
     <IncludePath>$(SolutionDir)Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)External\Curses;$(LibraryPath)</LibraryPath>
+    <TargetName>WritersPal</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
