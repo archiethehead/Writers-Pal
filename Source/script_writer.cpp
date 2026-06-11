@@ -198,6 +198,12 @@ void scriptWriter::sortBuffer() {
 	std::sort(lineBuffer.begin(), lineBuffer.end());
 	bufferModified = false;
 
+	for (int i = 0; i < lineBuffer.size(); i++) {
+	
+		lineBuffer[i].startLineNum = i;
+	
+	}
+
 }
 
 void scriptWriter::mapLines() {
@@ -285,6 +291,19 @@ void scriptWriter::splitLine(scriptLine& line, int x, int lineNum) {
 	line.text.erase(pos);
 	moveDownLines(line.startLineNum, line.lineType);
 	lineBuffer.back().text = newText;
+
+}
+
+void scriptWriter::mergeLines(int bufferIndex) {
+
+	if (bufferIndex == (pageheight + 1)) {
+	
+		return;
+	
+	}
+
+	lineBuffer[bufferIndex - 1].text += lineBuffer[bufferIndex].text;
+	deleteLine(lineBuffer[bufferIndex]);
 
 }
 
@@ -718,6 +737,16 @@ void scriptWriter::mainLoop() {
 
 			}
 
+			else if (!(x - minSpace) && (absolutey != pageheight + 1) && (findLineNum(absolutey)) == 1) {
+				
+				int minSpace = FIND_SPACE_POINTER(previousLine);
+				currentType = previousLine->lineType;
+				int previousLastLineLen = lastLineLen(*(lineMap[absolutey - 1]));
+				mergeLines(currentLine->startLineNum);
+				y--;
+				x = previousLastLineLen + minSpace + 1;
+
+			}
 
 			else {
 
