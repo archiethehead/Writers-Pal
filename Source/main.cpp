@@ -90,7 +90,6 @@ int main(int argc, char *argv[]) {
 				break;
 
 			case 3:
-				std::cout << argv[2];
 				newScript(argv[2]);
 				break;
 
@@ -118,7 +117,7 @@ int main(int argc, char *argv[]) {
 				}
 
 				std::cout << "\n    ERROR: Unable to set name -> " << argv[2] << " :(\n";
-				return 0;
+				return -1;
 			
 			}
 
@@ -126,6 +125,26 @@ int main(int argc, char *argv[]) {
 			return -1;
 		
 		}
+
+		else if (!(strcmp(argv[1], "help"))) {
+		
+			std::cout << "\n    Writers-Pal - The Terminal User Interface for Screenwriting!\n"
+				<< "\n    new [script name] [type] ---> This command will create  a script in the current working directory,"
+				<< "\n    with the (optional) name and type arguments. You will be prompted to enter these if they are"
+				<< "\n    not given as arguments. Surround either in quotation marks to allow for space. As for type,"
+				<< "\n    recommended templates are as follows:\n"
+				<< "\n        Draft -> Ideal for scripts that are proof of concept, tests, or experiments.\n"
+				<< "\n        Shooting Script -> Intended for final, production ready use, with director annotations\n        embedded.\n"
+				<< "\n        Speculative Script -> When story elements are the main focus of the piece, great for\n        aspiring writers.\n"
+				<< "\n        Continuity Script -> An amended version of a script after production has wrapped, for\n        an accurate transcription of the final piece.\n\n"
+				<< "\n    setname [writer name] ---> This command will change the environment variable Writers-Pal uses to"
+				<< "\n    determine what to write in scripts under your name. It is once again recommended to encase"
+				<< "\n    the argument in quotation marks for proper string parsing.\n\n"
+				<< "\n    help ---> This command will print the command menu you are currently reading!\n\n"
+				<< "\n    [script name] ---> This command will check the working directory for the script name specified"
+				<< "\n    in the command argument. If it doesn't exist, an error will be thrown. The same will happne if"
+				<< "\n    it's an invalid or misspelled command.\n\n";
+		}		
 
 		else {
 
@@ -147,6 +166,7 @@ int main(int argc, char *argv[]) {
 			if (!isFile) {
 
 				std::cout << "\n    ERROR: " << argv[1] << " is not a recognised command or file :( - try 'writerspal help'\n";
+				return -1;
 
 			}
 

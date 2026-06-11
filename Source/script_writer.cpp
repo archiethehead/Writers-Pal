@@ -94,6 +94,8 @@ bool scriptWriter::openScript(char filepath[], bool isReadOnly) {
 	}
 
 	centreText(scriptName);
+	recentreText(scriptType);
+	recentreText(writerName);
 
 	if (lineBuffer.back().startLineNum < 0xffff) {
 	
@@ -431,7 +433,7 @@ void scriptWriter::splitLine(scriptLine& line, int x, int lineNum) {
 
 void scriptWriter::mergeLines(int bufferIndex) {
 
-	if (bufferIndex == (pageheight + 1)) {
+	if (bufferIndex == (pageheight)) {
 	
 		return;
 	
@@ -883,7 +885,7 @@ void scriptWriter::mainLoop() {
 
 			}
 
-			else if (!(x - minSpace) && (absolutey != pageheight + 1) && (findLineNum(absolutey)) == 1) {
+			else if (!(x - minSpace) && (absolutey != pageheight) && (findLineNum(absolutey)) == 1) {
 				
 				int minSpace = FIND_SPACE_POINTER(previousLine);
 				currentType = previousLine->lineType;
