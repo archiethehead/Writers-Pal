@@ -43,11 +43,100 @@ scriptWriter::~scriptWriter() {
 
 }
 
-void scriptWriter::openScript(bool isReadOnly) {
+bool scriptWriter::openScript(char filepath[], bool isReadOnly) {
 
 	readOnly = isReadOnly;
+	std::fstream file;
+	char* path = (char*)malloc(sizeof(filepath) + 5);
+
+	if (path == 0) {
+	
+		return false;
+	
+	}
+
+	strcpy(path, filepath);
+	strcat(path, ".txt");
+
+	file.open(path, std::fstream::in);
+
+	if (!file.is_open()) {
+	
+		return false;
+	
+	}
+
+	std::vector<std::string> row;
+	std::string temp;
+	int index = 0;
+
+	while (getline(file,  temp, '\n')) {
+	
+		row.push_back(temp);
+		index++;
+
+		if (index == 3) {
+			
+			scriptName = row[0];
+			scriptType = row[1];
+			writerName = row[2];
+			row.clear();
+		
+		}
+
+		if (index % 3 == 0 && index != 3) {
+
+			addLine(std::stoi(row[0]), std::stof(row[1]), row[2]);
+			row.clear();
+
+		}
+	
+	}
+
+	centreText(scriptName);
+
+	if (lineBuffer.back().startLineNum < 0xffff) {
+	
+		int* tempBuffer = (int*)malloc(sizeof(int) * lineBuffer.size());
+
+		if (tempBuffer == 0) { return false; }
+
+		for (int i = 0; i < lineBuffer.size(); i++) {
+		
+			tempBuffer[i] = 0;
+		
+		}
+
+		for (int i = 0; i < lineBuffer.size(); i++) {
+		
+			tempBuffer[lineBuffer[i].startLineNum] = 1;
+		
+		}
+
+		for (int i = 0; i < lineBuffer.size(); i++) {
+		
+			if (!tempBuffer[i]) {
+			
+				addLine(i, DESCRIPTION);
+			
+			}
+		
+		}
+	
+	}
+
+	else {
+	
+		return false;
+	
+	}
+
+	coverPage();
+	sortBuffer();
+	mapLines();
 
 	mainLoop();
+	return true;
 
 }
 
@@ -70,6 +159,45 @@ void scriptWriter::newScript(std::string name, std::string type) {
 	mapLines();
 
 	mainLoop();
+
+}
+
+void scriptWriter::saveScript() {
+
+	int len = scriptName.length();
+	int startIndex = -1;
+
+	const char* cstring = scriptName.c_str();
+	char currentChar = ' ';
+	while (currentChar == ' ') {
+
+		startIndex++;
+		currentChar = cstring[startIndex];
+
+	}
+
+	scriptName = scriptName.substr(startIndex, len - ((startIndex)));
+
+	std::fstream file;
+	file.open((scriptName + ".txt").c_str(), std::fstream::out);
+
+	file	<< scriptName << "\n"
+			<< scriptType << "\n"
+			<< writerName << "\n";
+	
+	for (int i = 0; i < (SCRIPT_SIZE - 1) - pageheight; i++) {
+	
+		scriptLine* currentLine = &(lineBuffer[i + pageheight]);
+
+		if (!currentLine->text.size()) { continue; }
+
+		file	<< currentLine->startLineNum - pageheight << "\n"
+				<< currentLine->lineType << "\n"
+				<< currentLine->text << "\n";
+	
+	}
+
+	file.close();
 
 }
 
@@ -716,6 +844,17 @@ void scriptWriter::mainLoop() {
 		
 			currentLine->cycleType(false);
 			mapModified = true;
+		
+		}
+
+		else if (key == CTRL('s')) {
+		
+			mvaddstr(maxy, 0, "SAVING . . .");
+			refresh();
+			saveScript();
+			mvaddstr(maxy, 0, "SAVED!");
+			refresh();
+			getch();
 		
 		}
 

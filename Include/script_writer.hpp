@@ -31,6 +31,9 @@
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include <windows.h>
 
 class scriptWriter {
@@ -64,10 +67,12 @@ public:
 
 	scriptWriter();
 	~scriptWriter();
-	void openScript(bool isReadOnly = false);
+	bool openScript(char filepath[], bool readOnly = false);
 	void newScript(std::string name, std::string type);
 
 private:
+
+	void saveScript();
 
 	int calculateLineCount(scriptLine& line);
 	int findLineNum(int index);

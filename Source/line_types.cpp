@@ -10,6 +10,24 @@ scriptLine::line(int start, float type, std::string content) {
 	lineType = type;
 	text = content;
 
+	if (lineType == DESCRIPTION) {
+	
+		cycle_val = 1;
+	
+	}
+
+	else if (lineType == DIALOGUE) {
+
+		cycle_val = 2;
+
+	}
+
+	else if (lineType == CHARACTER) {
+
+		cycle_val = 4;
+
+	}
+
 }
 
 bool scriptLine::operator < (const line& thisLine) {
@@ -34,6 +52,9 @@ void scriptLine::cycleType(bool right) {
 
 	case 0:
 		cycle_val >>= 1;
+		break;
+
+	default:
 		break;
 
 	}
