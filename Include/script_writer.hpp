@@ -68,6 +68,7 @@ class scriptWriter {
 	void sortBuffer();
 	void mapLines();
 	void moveDownLines(int y, float type);
+	void splitLine(scriptLine& line, int x, int lineNum);
 
 	int addChar(scriptLine& line, int x, int lineNum, char character);
 	int backspace(scriptLine&  line, int x, int lineNum);

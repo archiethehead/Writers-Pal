@@ -20,6 +20,7 @@ scriptWriter::scriptWriter() {
 	nocbreak();
 	noecho();
 	raw();
+	nonl();
 	keypad(stdscr, true);
 	resize_term(0, 0);
 
@@ -245,6 +246,48 @@ void scriptWriter::moveDownLines(int y, float type) {
 
 }
 
+void scriptWriter::splitLine(scriptLine& line, int x, int lineNum) {
+
+	int numOfLines = calculateLineCount(line);
+
+	if (lineNum > numOfLines) {
+
+		return;
+
+	}
+
+	int len = maxx - (FIND_SPACE(line) * 2);
+	int pos = len * (lineNum - 1);
+
+	int finalLineLen = (line.text.length() - 1) - (len * (numOfLines - 1));
+
+	if (lineNum == numOfLines) {
+
+		len = line.text.length();
+		if (numOfLines > 1) {
+
+			len = len - (len * (numOfLines));
+
+		}
+
+	}
+
+	pos += x;
+
+	if (pos > line.text.size()) {
+	
+		moveDownLines(line.startLineNum, line.lineType);
+		return;
+	
+	}
+
+	std::string newText = line.text.substr(pos, line.text.size() - pos);
+	line.text.erase(pos);
+	moveDownLines(line.startLineNum, line.lineType);
+	lineBuffer.back().text = newText;
+
+}
+
 // The return variable for thr addChar and backspace functions below can either 
 // be 0 (signifying that x isn't past the end of the text), or non-zero (x is past
 // the end of the text). If non-zero, the value must be equal to the length of the
@@ -258,6 +301,13 @@ void scriptWriter::moveDownLines(int y, float type) {
 int scriptWriter::addChar(scriptLine& line, int x, int lineNum, char character) {
 
 	int numOfLines = calculateLineCount(line);
+
+	if (lineNum > numOfLines) {
+	
+		return 0;
+	
+	}
+
 	int len = maxx - (FIND_SPACE(line) * 2);
 	int pos = len * (lineNum - 1);
 
@@ -276,7 +326,7 @@ int scriptWriter::addChar(scriptLine& line, int x, int lineNum, char character) 
 
 	pos += x;
 	
-	if (x > finalLineLen + 1) {
+	if (x > len + 1) {
 
 		line.text.insert(line.text.size(), 1, character);
 		return finalLineLen + 2;
@@ -291,6 +341,13 @@ int scriptWriter::addChar(scriptLine& line, int x, int lineNum, char character) 
 int scriptWriter::backspace(scriptLine& line, int x, int lineNum) {
 
 	int numOfLines = calculateLineCount(line);
+
+	if (lineNum > numOfLines) {
+	
+		return 0;
+	
+	}
+
 	int len = maxx - (FIND_SPACE(line) * 2);
 	int pos = len * (lineNum - 1);
 	
@@ -298,10 +355,17 @@ int scriptWriter::backspace(scriptLine& line, int x, int lineNum) {
 
 	int finalLineLen = (line.text.length() - 1) - (len * (numOfLines - 1));
 
-	if (x > finalLineLen || x == 0 || (pos == finalLineLen && lineNum == numOfLines)) {
+	if ((x > finalLineLen && lineNum == numOfLines) || (pos == finalLineLen && lineNum == numOfLines)) {
 	
 		line.text.erase(line.text.size() - 1, 1);
 		return finalLineLen;
+	
+	}
+
+	if ((x > len)) {
+	
+		line.text.erase(pos - 2, 1);
+		return 0;
 	
 	}
 
@@ -631,8 +695,9 @@ void scriptWriter::mainLoop() {
 
 		else if (key == KEY_ENTER || key == 10 || key == 13) {
 		
-			moveDownLines(y + relativey , currentType);
+			splitLine(*(currentLine), x - minSpace, findLineNum(absolutey));
 			movey(y, relativey, POSITIVE);
+			x = minSpace;
 
 		}
 		
@@ -675,6 +740,9 @@ void scriptWriter::mainLoop() {
 					// if this is the last line of the current block and wrapping is about to occur,
 					// the cursor must be moved twice in order to move it completely out-of-bounds,
 					// and prevent accidental writing on a different block by not wrapping back up.
+					// In addiion to this, moving it once more places the cursor in the correct position
+					// for erasing the character behind the one it just erased. This can be accomplished
+					// with x--, as no boundary checks are necessary.
 
 					if (!lastLineLength) {
 					
@@ -685,6 +753,8 @@ void scriptWriter::mainLoop() {
 					if (isMoveY) {
 
 						movey(y, relativey, NEGATIVE);
+
+						x--;
 
 					}
 
@@ -721,6 +791,8 @@ void scriptWriter::mainLoop() {
 				}
 
 			}
+
+			mapModified = true;
 
 		}
 	
