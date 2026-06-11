@@ -43,12 +43,11 @@ scriptWriter::~scriptWriter() {
 
 }
 
-bool scriptWriter::openScript(bool isReadOnly) {
+void scriptWriter::openScript(bool isReadOnly) {
 
 	readOnly = isReadOnly;
 
 	mainLoop();
-	return true;
 
 }
 

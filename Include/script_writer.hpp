@@ -64,7 +64,7 @@ public:
 
 	scriptWriter();
 	~scriptWriter();
-	bool openScript(bool isReadOnly = false);
+	void openScript(bool isReadOnly = false);
 	void newScript(std::string name, std::string type);
 
 private:
